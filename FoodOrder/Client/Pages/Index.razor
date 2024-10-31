@@ -1,0 +1,127 @@
+﻿@page "/"
+
+@using FoodOrder.Client.Services;
+@using FoodOrder.Client.Shared;
+@inject iFoodOrderServices irestService
+@inject NavigationManager navigate
+@inject Blazored.SessionStorage.ISyncSessionStorageService sessionStorage
+@inject IJSRuntime JS
+
+<style>
+    /* Background and layout */
+    .form-bg {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #5A67D8, #1E3A8A);
+        color: #fff;
+    }
+
+    .form-container {
+        background-color: #ffffff;
+        color: #333;
+        max-width: 400px;
+        width: 100%;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        text-align: center;
+        font-family: 'Raleway', sans-serif;
+    }
+
+    /* Header Styling */
+    .form-container h5 {
+        font-size: 1.25rem;
+        color: #1E3A8A;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-container h3 {
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+        color: #4A5568;
+    }
+
+    /* Input styling */
+    .input-group-text {
+        background-color: #1E3A8A;
+        border: none;
+        color: #ffffff;
+    }
+
+    .form-control {
+        border-radius: 0 4px 4px 0;
+        border: 1px solid #ddd;
+        box-shadow: none;
+        padding: 0.75rem;
+    }
+
+    .form-control:focus {
+        border-color: #5A67D8;
+        box-shadow: 0 0 5px rgba(90, 103, 216, 0.5);
+    }
+
+    /* Button Styling */
+    .signin-btn {
+        background-color: #5A67D8;
+        border: none;
+        padding: 0.75rem;
+        font-size: 1rem;
+        width: 100%;
+        color: #ffffff;
+        transition: background-color 0.3s;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+
+    .signin-btn:hover {
+        background-color: #4C51BF;
+    }
+
+    /* Alert Styling */
+    .alert {
+        margin-top: 1rem;
+    }
+
+    /* Footer Styling */
+    .footer {
+        color: #888;
+        font-size: 0.85rem;
+        margin-top: 1rem;
+    }
+</style>
+
+<PageTitle>Restaurant System</PageTitle>
+
+<div class="form-bg">
+    <div class="form-container">
+        <h5>Welcome to POS</h5>
+        <h3>Sign In to Your Account</h3>
+        <form>
+            <div class="mb-3">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fa fa-user"></i></span>
+                    <input type="text" @bind="lo.Username" class="form-control" placeholder="Username">
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fa fa-lock"></i></span>
+                    <input type="password" @bind="lo.Password" class="form-control" placeholder="Password">
+                </div>
+            </div>
+            <button class="btn signin-btn" type="button" @onclick="@(() => checkLogin())">Login</button>
+
+            @if (alertMessage != null)
+            {
+                    <div class="alert alert-danger" role="alert">
+                    @alertMessage
+                    </div>
+            }
+        </form>
+        <div class="footer mt-4">
+            &copy; @DateTime.Now.Year - FoodOrder
+        </div>
+    </div>
+</div>

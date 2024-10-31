@@ -1,0 +1,223 @@
+﻿@page "/AddMenu/{IdHeaderOrder}"
+@using FoodOrder.Client.Services
+@inject iFoodOrderServices irestService
+@inject NavigationManager navigate
+@inject Blazored.SessionStorage.ISyncSessionStorageService sessionStorage
+@inject IJSRuntime JS
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha384-jLKHWMi+oPPNSxR0snNf1Z4aaJ2q1U0g2K4FkUe62/fLZha64ovwx0v2LBYbLf0Y" crossorigin="anonymous">
+<style>
+    .modal-body-custom .entry-group {
+        margin-bottom: 20px; /* Atur jarak antar grup input */
+    }
+
+    .modal-body-custom .input-group-append {
+        margin-bottom: 15px; /* Jarak bawah tombol Tambahkan Bagian */
+    }
+
+    .separator {
+        border-top: 3px solid #333; /* Ketebalan garis dan warna */
+        margin: 20px 0; /* Jarak atas dan bawah */
+    }
+
+
+
+</style>
+
+<div class="container">
+    <!-- Tabs and Add Button -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <ul class="nav nav-tabs">
+            @foreach (var category in getItemDataCategory)
+            {
+                <li class="nav-item">
+                    <button class="nav-link @(selectedTab == category.IdJenis ? "active" : "")"
+                            @onclick="() => SelectTab(category.IdJenis)">
+                        @category.NamaJenis
+                    </button>
+                </li>
+            }
+        </ul>
+
+       
+    </div>
+
+    <!-- Items by Selected Tab -->
+    @if (GetItemsBySelectedTab() != null && GetItemsBySelectedTab().Any())
+    {
+        <div class="row mt-4">
+            @foreach (var item in GetItemsBySelectedTab())
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm h-100" @key="item.IdItem" style="border: 1px solid #dee2e6; background-color: #fafafa;">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-primary fw-bold mb-2">
+                                @item.NamaItem
+                            </h5>
+                            <p class="card-text text-muted" style="font-size: 0.9rem;">
+                                <span>Rp. </span>@item.Harga
+                            </p>
+
+                            <!-- Availability Status -->
+                           
+                                <div class="mt-auto p-2 rounded" style="background: linear-gradient(135deg, #f2f5f7, #e9ecef); border-left: 5px solid #007bff;">
+                                    <span class="text-muted" style="font-size: 0.85rem;">
+                                        @if (item.Tersedia == "1")
+                                        {
+                                            <span style="color: #28a745; font-weight: bold;">TERSEDIA</span>
+                                        }
+                                        else
+                                        {
+                                            <span style="color: #dc3545; font-weight: bold;">TIDAK TERSEDIA</span>
+                                        }
+                                    </span>
+                                   
+                                </div>
+                            
+
+                            <label for="jumlah" class="form-label fw-semibold text-muted">Jumlah</label>
+                            <div class="mb-3 d-flex align-items-center">
+                                <button class="btn btn-outline-secondary me-2" @onclick="() => DecrementJumlah(item.IdItem)">
+                                    ➖
+                                </button>
+                                <input type="text" id="jumlah" class="form-control text-center" placeholder="Jumlah"
+                                       value="@GetItemQuantity(item.IdItem)" readonly />
+                                <button class="btn btn-outline-secondary ms-2" @onclick="() => IncrementJumlah(item.IdItem)">
+                                    ➕
+                                </button>
+                            </div>
+
+
+                            <button class="btn btn-primary mt-3" disabled="@(!item.Tersedia.Equals("1"))" @onclick="() => PopUpOrder(item.IdItem, item.NamaItem, item.Harga)">
+                                Tambah Ke Keranjang
+                            </button>
+
+
+
+
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-center text-muted mt-4">@alertMessage</p>
+    }
+
+    @if (isAddMasterItem)
+    {
+        <div class="modal d-block">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Tambah Menu</h5>
+                        <button type="button" class="close" @onclick="CloseAddMenuModal">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="container mt-3">
+                        <div class="modal-body modal-body-custom">
+                            @foreach (var entry in masterItemAddEntries.Select((entry, index) => new { entry, index }))
+                            {
+                                <!-- Tambahkan garis pembatas untuk setiap list setelah yang pertama -->
+                                @if (entry.index > 0)
+                                {
+                                    <hr style="border-top: 3px solid #333; margin: 20px 0;" /> <!-- Garis pemisah antar list dengan ketebalan 3px -->
+                                }
+
+                                <div class="mb-4">
+                                    <!-- Wrapper untuk setiap grup input -->
+                                    <label for="jenisSelect">Nama Item:</label>
+                                    <div class="input-group">
+
+                                        <input type="text" class="form-control mb-2" placeholder="Nama Item" @bind="entry.entry.NamaItem" />
+                                        @if (entry.index == 0)
+                                        {
+                                            <div class="input-group-append ms-2 mb-3">
+                                                <button class="btn btn-primary" @onclick="AddNewMasterItemEntry">Tambahkan Bagian</button>
+                                            </div>
+                                        }
+                                        @if (entry.index > 0)
+                                        {
+                                            <button class="btn btn-danger ms-2" @onclick="() => RemoveLoadingManifestEntry(entry.index)">Delete</button>
+                                        }
+                                    </div>
+                                    <label for="jenisSelect">Harga Item:</label>
+                                    <input type="text" class="form-control mb-2" placeholder="Harga" @bind="entry.entry.harga" />
+
+                                    <div class="form-group mb-2">
+                                        <label for="jenisSelect">Jenis:</label>
+                                        <select class="form-control mt-2" @bind="entry.entry.jenis">
+                                            <option value="1">Makanan</option>
+                                            <option value="2">Minuman</option>
+                                            <option value="3">Snack</option>
+                                        </select>
+                                    </div>
+                                    <label for="jenisSelect">Stock Saat Ini:</label>
+                                    <input type="text" class="form-control mb-2" placeholder="Stok Tersedia" @bind="entry.entry.qtytersedia" />
+                                </div>
+                            }
+
+                            <div class="modal-footer">
+                                <button class="btn btn-primary" @onclick="() => SaveMenu()">Save Changes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+
+    <button class="btn btn-info mb-3" @onclick="() => ShowOrderList = !ShowOrderList">
+        Lihat Keranjang
+    </button>
+
+    @if (ShowOrderList && currentOrderDetails.Any())
+    {
+        <div class="modal d-block fade show">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Daftar Pesanan</h5>
+                        <button type="button" class="btn-close" aria-label="Close" @onclick="() => ShowOrderList = false"></button>
+                    </div>
+                    <div class="modal-body">
+                    
+                        <ul class="list-group">
+                            @foreach (var detail in currentOrderDetails)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>
+
+                                            @(selectedItemNames.ElementAtOrDefault(currentOrderDetails.IndexOf(detail)) ?? "Nama Item Tidak Ditemukan") - @detail.Qty
+                                        </strong> - Total: Rp. @detail.Total
+                                    </div>
+                                    <button class="btn btn-danger btn-sm" @onclick="() => RemoveOrderDetail(detail)">Hapus</button>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="me-auto">
+                            <strong>Total Keseluruhan: Rp. @GetTotalKeseluruhan()</strong>
+                        </div>
+                        <button type="button" class="btn btn-secondary" @onclick="() => InsertOrder()">Tambahkan Pesanan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+
+
+
+
+
+
+
+
+</div>

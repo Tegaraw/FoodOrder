@@ -1,0 +1,275 @@
+﻿@page "/Order"
+@using FoodOrder.Client.Services
+@inject iFoodOrderServices irestService
+@inject NavigationManager navigate
+@inject Blazored.SessionStorage.ISyncSessionStorageService sessionStorage
+@inject IJSRuntime JS
+
+
+<style>
+    .buttons-container {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        border: 2px solid #ddd;
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    .header-section {
+        background-color: #007bff;
+        color: white;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border: 2px solid #007bff;
+    }
+
+        .header-section h5 {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0;
+            color: white;
+        }
+
+        .header-section .initial-info {
+            margin-top: 5px;
+            font-size: 14px;
+        }
+
+        .header-section Icon {
+            cursor: pointer;
+        }
+
+    .modal-content {
+        border-radius: 12px;
+        background-color: #FFF;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        color: #fff;
+    }
+
+    .modal-header, .modal-footer, .modal-body {
+        color: #000;
+    }
+
+        .modal-header h5, .modal-footer button, .modal-body p {
+            color: #000;
+        }
+
+   
+    .clickable-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        border-radius: 12px;
+    }
+
+    
+</style>
+
+<div class="container mt-4">
+    <h3 class="text-center mb-4">Daftar Order</h3>
+
+    <div class="row mb-3">
+        <div class="col-auto">
+            <button class="btn btn-outline-info fw-bold" type="button" @onclick="@(() => { if (advanceFilter.Count() < 3) {advanceFilter.Add(new()); } })">
+                <span class="me-1">+</span> Add Filter
+            </button>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-outline-primary fw-bold" type="button" @onclick="fundReturnAdvanceFilter">
+                <span class="me-1">🔍</span> Filter
+            </button>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-outline-secondary fw-bold" type="button" @onclick="resetFundReturnFilter">
+                <span class="me-1">🔄</span> Reset
+            </button>
+        </div>
+    </div>
+
+
+    <form class="mb-4">
+        @foreach (var advFilter in advanceFilter)
+        {
+            <div class="input-group my-2">
+                <div class="input-group-prepend">
+                    <select class="form-select" @bind="advFilter.type">
+                        <option hidden disabled value="">Filter By</option>
+                        <option value="NomorOrder">NomorOrder</option>
+                    </select>
+                </div>
+                <input type="text" class="form-control" aria-label="Text input with dropdown button" @bind-value="advFilter.value">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-danger fw-bold" type="button" @onclick="@(() => advanceFilter.Remove(advFilter))">
+                        <span class="me-1">×</span>
+                    </button>
+                </div>
+            </div>
+        }
+    </form>
+
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Transporter Details</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nomor Order</th>
+                            <th>Nomor Meja</th>
+                            <th>NamaStatus</th>
+                            <th>Create BY</th>
+                            <th>Create Date</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (FileResult != null && FileResult.Any())
+                        {
+                            @foreach (var group in FileResult)
+                            {
+                                <tr>
+                                    <td>@group.NomorOrder</td>
+                                    <td>@group.NomorMeja</td>
+                                    <td>@group.NamaStatus</td>
+                                    <td>@group.CreateBy</td>
+                                    
+                                    <td>@group.CreateDate</td>
+                                   
+                                    <td class="text-center">
+                                        <button class="btn btn-warning" @onclick="() => GetDetailOrder(group.IdHeaderOrder)">Detail</button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="5" class="text-center">Tidak ada data</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <nav aria-label="Fuel Stock Pagination">
+        <ul class="pagination pagination-sm justify-content-center my-2">
+            @if ((fuelStockPageActive - 2) > 0)
+            {
+                <li class="page-item px-1 paging-style" @onclick="(() => GetPage((fuelStockPageActive - 1)))"><span class="page-link">Previous</span></li>
+                <li class="page-item paging-style" @onclick="(() => GetPage((fuelStockPageActive - 2)))"><span class="page-link">@(fuelStockPageActive - 2)</span></li>
+                <li class="page-item paging-style" @onclick="(() => GetPage((fuelStockPageActive - 1)))"><span class="page-link">@(fuelStockPageActive - 1)</span></li>
+            }
+            else if ((fuelStockPageActive - 1) > 0)
+            {
+                <li class="page-item px-1 paging-style" @onclick="(() => GetPage((fuelStockPageActive - 1)))"><span class="page-link">Previous</span></li>
+                <li class="page-item paging-style" @onclick="(() => GetPage((fuelStockPageActive - 1)))"><span class="page-link">@(fuelStockPageActive - 1)</span></li>
+            }
+            else
+            {
+                <li class="page-item px-1 disabled dis-paging-style"><span class="page-link">Previous</span></li>
+                <li class="page-item disabled dis-paging-style"><span class="page-link">. . .</span></li>
+            }
+
+            <li class="page-item active dis-paging-style"><span class="page-link">@fuelStockPageActive</span></li>
+
+            @if ((fuelStockPageActive + 1) < fuelStockNumberofPages)
+            {
+                <li class="page-item paging-style" @onclick="(() => GetPage((fuelStockPageActive + 1)))"><span class="page-link">@(fuelStockPageActive + 1)</span></li>
+                <li class="page-item paging-style" @onclick="(() => GetPage((fuelStockPageActive + 2)))"><span class="page-link">@(fuelStockPageActive + 2)</span></li>
+                <li class="page-item px-1 paging-style" @onclick="(() => GetPage((fuelStockPageActive + 1)))"><span class="page-link">Next</span></li>
+            }
+            else if (fuelStockPageActive < fuelStockNumberofPages)
+            {
+                <li class="page-item paging-style" @onclick="(() => GetPage((fuelStockPageActive + 1)))"><span class="page-link">@(fuelStockPageActive + 1)</span></li>
+                <li class="page-item px-1 paging-style" @onclick="(() => GetPage((fuelStockPageActive + 1)))"><span class="page-link">Next</span></li>
+            }
+            else
+            {
+                <li class="page-item disabled dis-paging-style"><span class="page-link">. . .</span></li>
+                <li class="page-item px-1 disabled dis-paging-style"><span class="page-link">Next</span></li>
+            }
+        </ul>
+    </nav>
+
+
+    @if (ShowOrderList && getItemData.Any())
+    {
+        <div class="modal d-block fade show">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content" style="border-radius: 15px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);">
+                    <div class="modal-header" style="background-color: #4a90e2; border-radius: 15px 15px 0 0;">
+                        <h5 class="modal-title text-white fw-bold">Daftar Pesanan</h5>
+                        <button type="button" class="btn-close btn-close-white" aria-label="Close" @onclick="() => ShowOrderList = false"></button>
+                    </div>
+                    <div class="modal-body" style="background-color: #f7f9fc;">
+                        <ul class="list-group">
+                            @foreach (var detail in getItemData)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center" style="border: none; border-bottom: 1px solid #ddd;">
+                                    <div style="flex: 1;">
+                                        <strong class="text-dark">@detail.NamaItem</strong>
+                                        <span class="text-muted" style="font-size: 0.9rem;">
+                                            - Qty:
+                                        </span>
+                                        @if (detail.IsEditing)
+                                        {
+                                            <div class="d-flex align-items-center my-2">
+                                                <button class="btn btn-outline-primary btn-sm me-2" @onclick="() => DecrementJumlah(detail)">➖</button>
+                                                <input type="text" class="form-control text-center mx-1" style="width: 60px;" placeholder="Jumlah"
+                                                       value="@detail.Qty" readonly />
+                                                <button class="btn btn-outline-primary btn-sm ms-2" @onclick="() => IncrementJumlah(detail)">➕</button>
+                                            </div>
+                                            <button class="btn btn-success btn-sm mt-1" @onclick="() => SaveQuantity(detail)">Save</button>
+                                        }
+                                        else
+                                        {
+                                            <span>@detail.Qty</span>
+                                        }
+                                        <div class="mt-1">
+                                            <span class="text-muted" style="font-size: 0.9rem;">Harga Satuan:</span> Rp. @detail.HargaSatuan
+                                            <span class="text-muted mx-1">|</span>
+                                            <span class="text-muted" style="font-size: 0.9rem;">Total:</span> Rp. @detail.Total
+                                        </div>
+                                    </div>
+                                    <div class="d-flex">
+                                        <button class="btn btn-outline-warning btn-sm me-1" @onclick="() => ToggleEditMode(detail)">Edit</button>
+                                        <button class="btn btn-outline-danger btn-sm" @onclick="() => RemoveOrderDetail(detail)">Hapus</button>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="modal-footer" style="background-color: #f7f9fc; border-radius: 0 0 15px 15px;">
+                        <div class="me-auto text-dark fw-bold">
+                            Total Keseluruhan: Rp. @GetTotalKeseluruhan()
+                        </div>
+                        <button type="button" class="btn btn-primary">Tambahkan Pesanan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+
+
+    
+
+
+
+
+ </div>
