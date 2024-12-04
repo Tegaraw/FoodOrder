@@ -22,6 +22,7 @@ namespace FoodOrder.Client.Pages
         }
         private async Task checkLogin()
         {
+            isLoading = true;
             await checkdulu();
 
         }
@@ -53,11 +54,12 @@ namespace FoodOrder.Client.Pages
                         sessionStorage.SetItem("Token", a.Data.Token);
                         sessionStorage.SetItem("Role", a.Data.Role);
                         navigate.NavigateTo("Home");
-
+                        isLoading = false;
                     }
                     else
                     {
                         alertMessage = "Username or Password is wrong";
+                        isLoading = false;
                     }
                 }
             }

@@ -19,14 +19,19 @@
         border-top: 3px solid #333; /* Ketebalan garis dan warna */
         margin: 20px 0; /* Jarak atas dan bawah */
     }
-
-
-
 </style>
 
-<div class="container">
+
+@if (isLoading)
+{
+    <SplashScreen />
+}
+else
+{
+    <div class="container">
     <!-- Tabs and Add Button -->
     <div class="d-flex justify-content-between align-items-center mb-3">
+        <!-- Tabs -->
         <ul class="nav nav-tabs">
             @foreach (var category in getItemDataCategory)
             {
@@ -39,13 +44,20 @@
             }
         </ul>
 
-        @if (ShouldShowSaveProsesMuat)
-        {
-            <button class="btn btn-primary ml-3" @onclick="OnTambahMenuClicked">
-                Tambah Menu
+        <!-- Buttons aligned to the right -->
+        <div class="d-flex">
+            @if (ShouldShowSaveProsesMuat)
+            {
+                <button class="btn btn-primary mr-3" @onclick="OnTambahMenuClicked">
+                    Tambah Menu
+                </button>
+            }
+            <button class="btn btn-info" style="margin-left: 15px;" @onclick="() => ShowOrderList = !ShowOrderList">
+                Lihat Keranjang
             </button>
-        }
+        </div>
     </div>
+
 
     <!-- Items by Selected Tab -->
     @if (GetItemsBySelectedTab() != null && GetItemsBySelectedTab().Any())
@@ -56,46 +68,48 @@
                 <div class="col-md-4 mb-4">
                     <div class="card shadow-sm h-100" @key="item.IdItem" style="border: 1px solid #dee2e6; background-color: #fafafa;">
                         <div class="card-body d-flex flex-column">
+
+                            @if (itemImages.ContainsKey(item.IdItem))
+                            {
+                                <div class="mb-3 text-center" style="width: 100%; padding: 10px; box-sizing: border-box;">
+                                    <img src="data:image/png;base64,@itemImages[item.IdItem]"
+                                         alt="Gambar Menu"
+                                         class="img-fluid rounded"
+                                         style="width: 100%; max-height: 150px; object-fit: contain;" />
+                                </div>
+                            }
+
                             <h5 class="card-title text-primary fw-bold mb-2">
                                 @item.NamaItem
+                                <button class="btn btn-primary btn-sm ms-2" @onclick="() => EditMenu(item)">
+                                    ✏️ Edit
+                                </button>
+
+                                <button class="btn btn-danger btn-sm ms-2" @onclick="() => DeleteMenu(item)">
+                                    🗑️ Delete
+                                </button>
                             </h5>
                             <p class="card-text text-muted" style="font-size: 0.9rem;">
                                 <span>Rp. </span>@item.Harga
                             </p>
 
                             <!-- Availability Status -->
-                            @if (item.IsEditing)
-                            {
-                                <select class="form-control mt-2" @bind="item.Tersedia">
-                                    <option value="1">TERSEDIA</option>
-                                    <option value="2">TIDAK TERSEDIA</option>
-                                </select>
-                                <div class="d-flex mt-2">
-                                    <button class="btn btn-success btn-sm me-2" @onclick="() => SaveStatus(item.IdItem, item.Tersedia)">Simpan</button>
-                                    <button class="btn btn-secondary btn-sm" @onclick="() => CancelEdit(item)">Cancel</button>
-                                </div>
-                            }
-                            else
-                            {
+                           
                                 <div class="mt-auto p-2 rounded" style="background: linear-gradient(135deg, #f2f5f7, #e9ecef); border-left: 5px solid #007bff;">
-                                    <span class="text-muted" style="font-size: 0.85rem;">
-                                        @if (item.Tersedia == "1")
-                                        {
-                                            <span style="color: #28a745; font-weight: bold;">TERSEDIA</span>
-                                        }
-                                        else
-                                        {
-                                            <span style="color: #dc3545; font-weight: bold;">TIDAK TERSEDIA</span>
-                                        }
-                                    </span>
-                                    @if (ShouldShowSaveProsesMuat)
+                                <span class="text-muted" style="font-size: 0.85rem;">
+                                    @if (item.Tersedia == "1" && Convert.ToInt32(item.QtyAvailable) > 0)
                                     {
-                                        <button class="btn btn-primary btn-sm ms-2" @onclick="() => EditStatus(item)">
-                                            ✏️ Edit
-                                        </button>
+                                        <span style="color: #28a745; font-weight: bold;">TERSEDIA</span>
                                     }
+                                    else
+                                    {
+                                        <span style="color: #dc3545; font-weight: bold;">TIDAK TERSEDIA</span>
+                                    }
+                                </span>
+
+                                   
                                 </div>
-                            }
+                            
 
                             <label for="jumlah" class="form-label fw-semibold text-muted">Jumlah</label>
                             <div class="mb-3 d-flex align-items-center">
@@ -104,16 +118,19 @@
                                 </button>
                                 <input type="text" id="jumlah" class="form-control text-center" placeholder="Jumlah"
                                        value="@GetItemQuantity(item.IdItem)" readonly />
-                                <button class="btn btn-outline-secondary ms-2" @onclick="() => IncrementJumlah(item.IdItem)">
+                                <button class="btn btn-outline-secondary ms-2"
+                                        @onclick="() => IncrementJumlah(item.IdItem)"
+                                        disabled="@(GetItemQuantity(item.IdItem) >= Convert.ToInt32(item.QtyAvailable))">
                                     ➕
                                 </button>
                             </div>
+                            <p class="text-muted small">QTY AVAILABLE: @item.QtyAvailable</p>
 
-
-                            <button class="btn btn-primary mt-3" disabled="@(!item.Tersedia.Equals("1"))"@onclick="() => PopUpOrder(item.IdItem, item.NamaItem, item.Harga)">
+                            <button class="btn btn-primary mt-3"
+                                    disabled="@(!item.Tersedia.Equals("1") || Convert.ToInt32(item.QtyAvailable) == 0)"
+                                    @onclick="() => PopUpOrder(item.IdItem, item.NamaItem, item.Harga)">
                                 Tambah Ke Keranjang
                             </button>
-
 
 
                         </div>
@@ -127,6 +144,7 @@
         <p class="text-center text-muted mt-4">@alertMessage</p>
     }
 
+
     @if (isAddMasterItem)
     {
         <div class="modal d-block">
@@ -134,55 +152,82 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">Tambah Menu</h5>
-                        <button type="button" class="close" @onclick="CloseAddMenuModal">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <button type="button" class="btn-close" @onclick="CloseAddMenuModal" aria-label="Close"></button>
                     </div>
                     <div class="container mt-3">
                         <div class="modal-body modal-body-custom">
                             @foreach (var entry in masterItemAddEntries.Select((entry, index) => new { entry, index }))
                             {
-                                <!-- Tambahkan garis pembatas untuk setiap list setelah yang pertama -->
+                                <!-- Separator line for entries after the first -->
                                 @if (entry.index > 0)
                                 {
-                                    <hr style="border-top: 3px solid #333; margin: 20px 0;" /> <!-- Garis pemisah antar list dengan ketebalan 3px -->
+                                    <hr class="separator" />
                                 }
 
-                                <div class="mb-4">
-                                    <!-- Wrapper untuk setiap grup input -->
-                                    <label for="jenisSelect">Nama Item:</label>
-                                    <div class="input-group">
-                                    
-                                    <input type="text" class="form-control mb-2" placeholder="Nama Item" @bind="entry.entry.NamaItem" />
+                                <div class="entry-group">
+                                    <!-- Nama Item -->
+                                    <label for="itemName" class="form-label fw-bold">Nama Item:</label>
+                                    <div class="input-group mb-3">
+                                        <input type="text" id="itemName" class="form-control" placeholder="Nama Item" @bind="entry.entry.NamaItem" />
                                         @if (entry.index == 0)
                                         {
-                                            <div class="input-group-append ms-2 mb-3">
-                                                <button class="btn btn-primary" @onclick="AddNewMasterItemEntry">Tambahkan Bagian</button>
-                                            </div>
+                                            <button class="btn btn-primary ms-2" @onclick="AddNewMasterItemEntry">
+                                                Tambahkan Bagian
+                                            </button>
                                         }
                                         @if (entry.index > 0)
                                         {
-                                            <button class="btn btn-danger ms-2" @onclick="() => RemoveLoadingManifestEntry(entry.index)">Delete</button>
+                                            <button class="btn btn-danger ms-2" @onclick="() => RemoveLoadingManifestEntry(entry.index)">
+                                                Hapus
+                                            </button>
                                         }
                                     </div>
-                                    <label for="jenisSelect">Harga Item:</label>
-                                    <input type="text" class="form-control mb-2" placeholder="Harga" @bind="entry.entry.harga" />
 
-                                    <div class="form-group mb-2">
-                                        <label for="jenisSelect">Jenis:</label>
-                                        <select class="form-control mt-2" @bind="entry.entry.jenis">
-                                            <option value="1">Makanan</option>
-                                            <option value="2">Minuman</option>
-                                            <option value="3">Snack</option>
-                                        </select>
-                                    </div>
-                                    <label for="jenisSelect">Stock Saat Ini:</label>
-                                    <input type="text" class="form-control mb-2" placeholder="Stok Tersedia" @bind="entry.entry.qtytersedia" />
+                                    <!-- Harga Item -->
+                                    <label for="itemPrice" class="form-label fw-bold">Harga Item:</label>
+                                    <input type="text" id="itemPrice" class="form-control mb-3" placeholder="Harga" @bind="entry.entry.harga" />
+
+                                    <!-- Jenis Item -->
+                                    <label for="itemType" class="form-label fw-bold">Jenis:</label>
+                                    <select id="itemType" class="form-select mb-3" @bind="entry.entry.jenis">
+                                        <option value="1">Makanan</option>
+                                        <option value="2">Minuman</option>
+                                        <option value="3">Snack</option>
+                                    </select>
+
+                                    <!-- Stok Item -->
+                                    <label for="itemStock" class="form-label fw-bold">Stock Saat Ini:</label>
+                                    <input type="text" id="itemStock" class="form-control mb-3" placeholder="Stok Tersedia" @bind="entry.entry.qtytersedia" />
+
+                                    <!-- Tambahkan Gambar -->
+                                    <button type="button" class="btn btn-warning mb-3" @onclick="addLine">
+                                        &#43; Gambar
+                                    </button>
+
+                                    @if (DetailFileType.Any())
+                                    {
+                                        @for (int i = 0; i < DetailFileType.Count; i++)
+                                        {
+                                            var line = DetailFileType[i];
+                                            <div class="form-group mb-4">
+                                                <label for="uploadImage" class="form-label fw-bold">Gambar (.jpeg/.jpg/.png):</label>
+                                                <InputFile class="form-control" @key="@inputFileId" OnChange="@((e) => OnInputFileChange(e, line.Id))" accept=".jpeg,.jpg,.png" maxFileSize="5242880" required />
+                                                @if (line.fileContent != null)
+                                                {
+                                                    <img src="data:image/png;base64,@Convert.ToBase64String(line.fileContent)" alt="Uploaded Image" class="img-thumbnail mt-3" style="max-width: 100%; height: auto;" />
+                                                }
+                                                <button type="button" class="btn btn-danger mt-2" @onclick="(() => deleteTask(line))">
+                                                    Hapus
+                                                </button>
+                                            </div>
+                                        }
+                                    }
                                 </div>
                             }
 
+                            <!-- Modal Footer -->
                             <div class="modal-footer">
-                                <button class="btn btn-primary" @onclick="() => SaveMenu()">Save Changes</button>
+                                <button class="btn btn-primary" @onclick="() => SaveMenu()">Simpan Perubahan</button>
                             </div>
                         </div>
                     </div>
@@ -192,9 +237,81 @@
     }
 
 
-    <button class="btn btn-info mb-3" @onclick="() => ShowOrderList = !ShowOrderList">
-        Lihat Keranjang
-    </button>
+
+    @if (isEditMasterItem)
+    {
+        <div class="modal d-block">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Menu</h5>
+                        <button type="button" class="btn-close" @onclick="CloseEditMenuModal" aria-label="Close"></button>
+                    </div>
+                    <div class="container mt-3">
+                        <div class="modal-body modal-body-custom">
+                            
+                            <label for="itemName" class="form-label fw-bold">Nama Item:</label>
+                            <div class="input-group mb-3">
+                                <input type="text" id="itemName" class="form-control" @bind="selectedNamaItem" />
+                            </div>
+
+                          
+                            <label for="itemPrice" class="form-label fw-bold">Harga Item:</label>
+                            <input type="text" id="itemPrice" class="form-control mb-3" placeholder="Harga" @bind="selectedHarga" />
+
+
+                            <label for="itemStock" class="form-label fw-bold">Stock Saat Ini:</label>
+                            <input type="text" id="itemStock" class="form-control mb-3" placeholder="Stok Tersedia" @bind="QTYReady" />
+
+
+                            
+                            <div class="modal-footer">
+                                <button class="btn btn-primary" @onclick="UpdateMasterItem">Simpan Perubahan</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+
+
+
+    @if (isDeleteMasterItem)
+    {
+        <div class="modal d-block">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Hapus Menu</h5>
+                        <button type="button" class="btn-close" @onclick="CloseDeleteMenuModal" aria-label="Close"></button>
+                    </div>
+                    <div class="container mt-3">
+                        <div class="modal-body modal-body-custom">
+
+                            <label for="itemName" class="form-label fw-bold">Nama Item:</label>
+                            <div class="input-group mb-3">
+                                <input type="text" id="itemName" class="form-control" @bind="selectedNamaItem"  readonly/>
+                            </div>
+
+
+                            <label for="itemPrice" class="form-label fw-bold">Harga Item:</label>
+                            <input type="text" id="itemPrice" class="form-control mb-3" placeholder="Harga" @bind="selectedHarga" readonly />
+
+                            <div class="modal-footer">
+                                <button class="btn btn-primary" @onclick="DeleteMasterItem">Simpan Perubahan</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+
+
+  
 
     @if (ShowOrderList && currentOrderDetails.Any())
     {
@@ -213,11 +330,13 @@
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     <div>
                                         <strong>
-                                        
-                                            @(selectedItemNames.ElementAtOrDefault(currentOrderDetails.IndexOf(detail)) ?? "Nama Item Tidak Ditemukan") - @detail.Qty
+
+                                            @(getItemData.FirstOrDefault(x => x.IdItem == detail.IdItem)?.NamaItem ?? "Nama Item Tidak Ditemukan") - @detail.Qty
+                                            
                                         </strong> - Total: Rp. @detail.Total
                                     </div>
                                     <button class="btn btn-danger btn-sm" @onclick="() => RemoveOrderDetail(detail)">Hapus</button>
+
                                 </li>
                             }
                         </ul>
@@ -234,4 +353,6 @@
     }
 
 
-</div>
+
+    </div>
+}

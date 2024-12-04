@@ -94,6 +94,12 @@
 
 <PageTitle>Restaurant System</PageTitle>
 
+@if (isLoading)
+{
+    <SplashScreen />
+}
+else
+{
 <div class="form-bg">
     <div class="form-container">
         <h5>Welcome to POS</h5>
@@ -125,3 +131,4 @@
         </div>
     </div>
 </div>
+}

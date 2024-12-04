@@ -77,6 +77,12 @@
     
 </style>
 
+@if (isLoading)
+{
+    <SplashScreen />
+}
+else
+{
 <div class="container mt-4">
     <h3 class="text-center mb-4">Daftar Order</h3>
 
@@ -122,7 +128,7 @@
 
     <div class="card shadow-sm mb-4">
         <div class="card-header">
-            <h5 class="card-title mb-0">Transporter Details</h5>
+            <h5 class="card-title mb-0">Outstanding Pembayaran</h5>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -226,20 +232,9 @@
                                         <span class="text-muted" style="font-size: 0.9rem;">
                                             - Qty:
                                         </span>
-                                        @if (detail.IsEditing)
-                                        {
-                                            <div class="d-flex align-items-center my-2">
-                                                <button class="btn btn-outline-primary btn-sm me-2" @onclick="() => DecrementJumlah(detail)">➖</button>
-                                                <input type="text" class="form-control text-center mx-1" style="width: 60px;" placeholder="Jumlah"
-                                                       value="@detail.Qty" readonly />
-                                                <button class="btn btn-outline-primary btn-sm ms-2" @onclick="() => IncrementJumlah(detail)">➕</button>
-                                            </div>
-                                            <button class="btn btn-success btn-sm mt-1" @onclick="() => SaveQuantity(detail)">Save</button>
-                                        }
-                                        else
-                                        {
-                                            <span>@detail.Qty</span>
-                                        }
+                                      
+                                        <span>@detail.Qty</span>
+                                        
                                         <div class="mt-1">
                                             <span class="text-muted" style="font-size: 0.9rem;">Harga Satuan:</span> Rp. @detail.HargaSatuan
                                             <span class="text-muted mx-1">|</span>
@@ -247,7 +242,7 @@
                                         </div>
                                     </div>
                                     <div class="d-flex">
-                                        <button class="btn btn-outline-warning btn-sm me-1" @onclick="() => ToggleEditMode(detail)">Edit</button>
+                                       
                                         <button class="btn btn-outline-danger btn-sm" @onclick="() => RemoveOrderDetail(detail)">Hapus</button>
                                     </div>
                                 </li>
@@ -258,7 +253,12 @@
                         <div class="me-auto text-dark fw-bold">
                             Total Keseluruhan: Rp. @GetTotalKeseluruhan()
                         </div>
-                        <button type="button" class="btn btn-primary">Tambahkan Pesanan</button>
+
+                        @if (FileResult.FirstOrDefault()?.NamaStatus != "Sudah Bayar")
+                        {
+                            <button type="button" class="btn btn-info" @onclick="SavePembayaran">Pembayaran</button>
+                        }
+                        <button type="button" class="btn btn-primary" @onclick="NavigateToMenu">Tambahkan Pesanan</button>
                     </div>
                 </div>
             </div>
@@ -273,3 +273,4 @@
 
 
  </div>
+}

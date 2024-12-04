@@ -38,16 +38,19 @@ namespace FoodOrder.Client.Pages
         private List<getOrderDetail> getItemData = new List<getOrderDetail>();
         private bool ShowOrderList = false;
         List<string> DataItemErr = new List<string>();
+        private bool isLoading = false;
 
         [Parameter]
         public string IdHeaderOrderMenu { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
+            isLoading = true;
             token = sessionStorage.GetItem<string>("Token");
             fuelStockPageActive = 1;
             await LoadData(fuelStockPageActive, "");
             await GetCrossDockHeaderTotalRow("");
+            isLoading = false;
         }
 
 
@@ -114,7 +117,7 @@ namespace FoodOrder.Client.Pages
             try
             {
 
-                //fundReturnFilterActive = false;
+               
                 isAdvancedFilterActive = false;
                 fundReturnPageActive = 1;
                 QueryModel<string> param = new();
@@ -158,7 +161,7 @@ namespace FoodOrder.Client.Pages
                 }
 
                 compileCond = compileCond.Substring(0, compileCond.Length - (advanceFilterOperandi.Length + 2));
-                //compileCond = $"{activeUser.location}!_!" + compileCond;
+               
                 fuelStockPageActive = page;
                 await LoadData(fuelStockPageActive, compileCond);
 
@@ -176,8 +179,7 @@ namespace FoodOrder.Client.Pages
 
         private bool validateInputFilter(string paramValue)
         {
-            //if (paramValue.Any(x => !char.IsLetterOrDigit(x)))
-            //    return false;
+            
 
             if (paramValue.Length < 1)
                 return false;
@@ -390,7 +392,9 @@ namespace FoodOrder.Client.Pages
         }
 
 
-        public bool ShouldShowSaveProsesMuat => irestService.activeUsers.Role == "1";
+       
+
+        public bool ShouldShowSaveProsesMuat => FileResult.FirstOrDefault().IdStatus == "1";
 
 
         private async Task SavePembayaran()

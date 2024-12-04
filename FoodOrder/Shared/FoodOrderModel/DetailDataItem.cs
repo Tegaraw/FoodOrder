@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace FoodOrder.Shared.FoodOrderModel
 {
-    public class AddNewMenu
+    public class DetailDataItem
     {
-        public GetMenu GetMenuModel { get; set; } = new GetMenu();
-        public List<SentAddMenu> SentAddMenuModel { get; set; } = new List<SentAddMenu>();
+        public SentAddMenu SentAddMenu { get; set; } = new SentAddMenu();
         public List<DetailFileType> DetailFileType { get; set; } = new List<DetailFileType>();
+
     }
 }

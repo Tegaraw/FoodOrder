@@ -12,5 +12,13 @@
         public bool IsEditing { get; set; } = false;
 
         public string Jenis { get; set; }
+        public int Id { get; set; } = 0;
+        public int IdLogBook { get; set; } = 0;
+        public string FileName { get; set; } = string.Empty;
+        public string FileType { get; set; } = string.Empty;
+        public string FilePath { get; set; } = string.Empty;
+        public string Extension { get; set; } = string.Empty;
+        public long Size { get; set; } = 0;
+        public byte[] fileContent { get; set; } = new byte[0];
     }
 }

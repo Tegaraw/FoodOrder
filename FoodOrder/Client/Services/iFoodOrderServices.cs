@@ -27,5 +27,19 @@ namespace FoodOrder.Client.Services
 
 
         Task<ResultModel<ReturnMessage>> DeleteItem(string token, QueryModel<DeleteItem> File);
+
+
+        Task<ResultModel<ReturnMessage>> UpdateItem(string token, QueryModel<SentUpdateItemModel> File);
+
+        Task<ResultModel<ReturnMessage>> DeleteItemMaster(string token, QueryModel<SentDeleteItemModel> File);
+
+
+        Task<ResultModel<List<GetReportStockData>>> GetReportStok(string Token, QueryModel<AGetReportStockDataModel> data);
+        Task<ResultModel<int?>> GetReportStokTotalRow(string token, QueryModel<AGetReportStockDataModel> data);
+
+
+        Task<ResultModel<List<GetReportOrderData>>> GetReporOrderData(string Token, QueryModel<AGetReportOrderDataModel> data);
+
+        Task<ResultModel<int?>> GetReportOrderDataTotalRow(string token, QueryModel<AGetReportOrderDataModel> data);
     }
 }

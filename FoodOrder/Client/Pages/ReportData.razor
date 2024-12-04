@@ -1,0 +1,216 @@
+﻿@page "/ReportData"
+@using FoodOrder.Client.Services
+@inject iFoodOrderServices irestService
+@inject NavigationManager navigate
+@inject Blazored.SessionStorage.ISyncSessionStorageService sessionStorage
+@inject IJSRuntime JS
+
+
+<style>
+    .buttons-container {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        border: 2px solid #ddd;
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    .header-section {
+        background-color: #007bff;
+        color: white;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border: 2px solid #007bff;
+    }
+
+        .header-section h5 {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0;
+            color: white;
+        }
+
+        .header-section .initial-info {
+            margin-top: 5px;
+            font-size: 14px;
+        }
+
+        .header-section Icon {
+            cursor: pointer;
+        }
+
+    .modal-content {
+        border-radius: 12px;
+        background-color: #FFF;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        color: #fff;
+    }
+
+    .modal-header, .modal-footer, .modal-body {
+        color: #000;
+    }
+
+        .modal-header h5, .modal-footer button, .modal-body p {
+            color: #000;
+        }
+
+
+    .clickable-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        border-radius: 12px;
+    }
+
+
+</style>
+
+
+@if (isLoading)
+{
+    <SplashScreen />
+}
+else
+{
+<div class="container mt-4">
+    <h3 class="text-center mb-4">Report Stock</h3>
+
+    <div class="row mb-3">
+        <div class="col-auto">
+            <button class="btn btn-outline-info fw-bold" type="button" @onclick="@(() => { if (advanceFilter.Count() < 3) {advanceFilter.Add(new()); } })">
+                <span class="me-1">+</span> Add Filter
+            </button>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-outline-primary fw-bold" type="button" @onclick="fundReturnAdvanceFilter">
+                <span class="me-1">🔍</span> Filter
+            </button>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-outline-secondary fw-bold" type="button" @onclick="resetFundReturnFilter">
+                <span class="me-1">🔄</span> Reset
+            </button>
+        </div>
+    </div>
+
+
+    <form class="mb-4">
+        @foreach (var advFilter in advanceFilter)
+        {
+            <div class="input-group my-2">
+                <div class="input-group-prepend">
+                    <select class="form-select" @bind="advFilter.type">
+                        <option hidden disabled value="">Filter By</option>
+                            <option value="NamaItem">NamaItem</option>
+                    </select>
+                </div>
+                <input type="text" class="form-control" aria-label="Text input with dropdown button" @bind-value="advFilter.value">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-danger fw-bold" type="button" @onclick="@(() => advanceFilter.Remove(advFilter))">
+                        <span class="me-1">×</span>
+                    </button>
+                </div>
+            </div>
+        }
+    </form>
+
+
+     <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Report Stok</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nama Item</th>
+                            <th>Jenis</th>
+                            <th>Stok</th>
+                            <th>Harga</th>
+                           
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (FileResult != null && FileResult.Any())
+                        {
+                            @foreach (var group in FileResult)
+                            {
+                                <tr>
+                                        <td>@group.NamaItem</td>
+                                        <td>@group.NamaJenis</td>
+                                        <td>@group.qtyavailable</td>
+                                        <td>@group.harga</td>
+                                  
+                                   
+                                   
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="5" class="text-center">Tidak ada data</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+        <nav aria-label="Fuel Stock Pagination">
+            <ul class="pagination pagination-sm justify-content-center my-2">
+                @if ((fuelStockPageActive - 2) > 0)
+                {
+                    <li class="page-item px-1 paging-style" @onclick="(() => GetPage((fuelStockPageActive - 1)))"><span class="page-link">Previous</span></li>
+                    <li class="page-item paging-style" @onclick="(() => GetPage((fuelStockPageActive - 2)))"><span class="page-link">@(fuelStockPageActive - 2)</span></li>
+                    <li class="page-item paging-style" @onclick="(() => GetPage((fuelStockPageActive - 1)))"><span class="page-link">@(fuelStockPageActive - 1)</span></li>
+                }
+                else if ((fuelStockPageActive - 1) > 0)
+                {
+                    <li class="page-item px-1 paging-style" @onclick="(() => GetPage((fuelStockPageActive - 1)))"><span class="page-link">Previous</span></li>
+                    <li class="page-item paging-style" @onclick="(() => GetPage((fuelStockPageActive - 1)))"><span class="page-link">@(fuelStockPageActive - 1)</span></li>
+                }
+                else
+                {
+                    <li class="page-item px-1 disabled dis-paging-style"><span class="page-link">Previous</span></li>
+                    <li class="page-item disabled dis-paging-style"><span class="page-link">. . .</span></li>
+                }
+
+                <li class="page-item active dis-paging-style"><span class="page-link">@fuelStockPageActive</span></li>
+
+                @if ((fuelStockPageActive + 1) < fuelStockNumberofPages)
+                {
+                    <li class="page-item paging-style" @onclick="(() => GetPage((fuelStockPageActive + 1)))"><span class="page-link">@(fuelStockPageActive + 1)</span></li>
+                    <li class="page-item paging-style" @onclick="(() => GetPage((fuelStockPageActive + 2)))"><span class="page-link">@(fuelStockPageActive + 2)</span></li>
+                    <li class="page-item px-1 paging-style" @onclick="(() => GetPage((fuelStockPageActive + 1)))"><span class="page-link">Next</span></li>
+                }
+                else if (fuelStockPageActive < fuelStockNumberofPages)
+                {
+                    <li class="page-item paging-style" @onclick="(() => GetPage((fuelStockPageActive + 1)))"><span class="page-link">@(fuelStockPageActive + 1)</span></li>
+                    <li class="page-item px-1 paging-style" @onclick="(() => GetPage((fuelStockPageActive + 1)))"><span class="page-link">Next</span></li>
+                }
+                else
+                {
+                    <li class="page-item disabled dis-paging-style"><span class="page-link">. . .</span></li>
+                    <li class="page-item px-1 disabled dis-paging-style"><span class="page-link">Next</span></li>
+                }
+            </ul>
+        </nav>
+
+</div>
+
+}

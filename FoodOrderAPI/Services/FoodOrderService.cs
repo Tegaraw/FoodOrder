@@ -213,7 +213,7 @@ namespace FoodOrderAPI.Services
         }
 
 
-        internal ResultModel<ReturnMessage> SentOutboundData(DataTable ListDataLoadingManifest, string _conString)
+        internal ResultModel<ReturnMessage> SentOutboundData(DataTable ListData, DataTable ListDataLoadingManifest, string _conString)
         {
             lock (_lockObject)
             {
@@ -237,7 +237,7 @@ namespace FoodOrderAPI.Services
 
 
                         command.Parameters.AddWithValue("@DataMasterItem", ListDataLoadingManifest);
-
+                        command.Parameters.AddWithValue("@DataFileImage", ListData);
                         int ret = command.ExecuteNonQuery();
 
                         if (ret >= 0)
@@ -656,5 +656,287 @@ namespace FoodOrderAPI.Services
             }
             Console.WriteLine("///////////// END" + Convert.ToString(DateTime.Now));
         }
+
+        public string getDateFolder()
+        {
+            string datePath = DateTime.Now.ToString(@"yyyy\\MM\\dd");
+
+            return datePath;
+        }
+
+        public void SaveFile(string path, byte[] content, string filename, string IdSite)
+        {
+            try
+            {
+                string datePath = DateTime.Now.ToString("yyyy/MM/dd");
+                string fullFolderPath = Path.Combine(path, datePath + "\\" + IdSite);
+                string filePath = Path.Combine(fullFolderPath, filename);
+
+                if (!Directory.Exists(fullFolderPath))
+                {
+                    Directory.CreateDirectory(fullFolderPath);
+                }
+
+                // Create a new file     
+                using (FileStream fs = System.IO.File.Create(filePath))
+                {
+                    fs.Write(content, 0, content.Length);
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ToString();
+                throw;
+            }
+        }
+
+        public byte[] DownloadFile(string path)
+        {
+            byte[]? fileBytes = null;
+            try
+            {
+                fileBytes = System.IO.File.ReadAllBytes(path);
+            }
+            catch (Exception ex)
+            {
+                ex.Message.ToString();
+            }
+            return fileBytes;
+        }
+
+
+
+        internal DataTable UpdateItem(string _conString, string IdItem,string NamaItem, string QTY, string harga)
+        {
+            DataTable Data = new DataTable(); ;
+            using (SqlConnection con = new SqlConnection(_conString))
+            {
+                con.Open();
+                SqlCommand command = new SqlCommand();
+
+                try
+                {
+                    command.Connection = con;
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.CommandText = "[dbo].[UpdateItem]";
+                    command.CommandTimeout = 1000;
+
+                    command.Parameters.Clear();
+                    command.Parameters.AddWithValue("@IdItem", IdItem);
+                    command.Parameters.AddWithValue("@NamaItem", NamaItem);
+
+                    command.Parameters.AddWithValue("@QTY", QTY);
+                    command.Parameters.AddWithValue("@Harga", harga);
+
+
+
+
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = command;
+                    da.Fill(Data);
+                }
+                catch (SqlException ex)
+                {
+                    throw ex;
+                }
+                finally
+                {
+                    con.Close();
+                }
+            }
+            return Data;
+        }
+
+
+        internal DataTable DeleteItemMaster(string _conString, string IdItem)
+        {
+            DataTable Data = new DataTable(); ;
+            using (SqlConnection con = new SqlConnection(_conString))
+            {
+                con.Open();
+                SqlCommand command = new SqlCommand();
+
+                try
+                {
+                    command.Connection = con;
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.CommandText = "[dbo].[DeleteItemMaster]";
+                    command.CommandTimeout = 1000;
+
+                    command.Parameters.Clear();
+                    command.Parameters.AddWithValue("@IdItem", IdItem);
+                   
+
+
+
+
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = command;
+                    da.Fill(Data);
+                }
+                catch (SqlException ex)
+                {
+                    throw ex;
+                }
+                finally
+                {
+                    con.Close();
+                }
+            }
+            return Data;
+        }
+
+
+        internal DataTable GetReportStok(string _conString, AGetReportStockDataModel AGetHeaderPicklistTokoModel, int RowsOfPage)
+        {
+            DataTable Data = new DataTable(); ;
+            using (SqlConnection con = new SqlConnection(_conString))
+            {
+                con.Open();
+                SqlCommand command = new SqlCommand();
+
+                try
+                {
+                    command.Connection = con;
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.CommandText = "[dbo].[GetReportStok]";
+                    command.CommandTimeout = 1000;
+
+                    command.Parameters.Clear();
+                  
+                    command.Parameters.AddWithValue("@PageNumber", AGetHeaderPicklistTokoModel.PageNumber);
+                    command.Parameters.AddWithValue("@RowsOfPage", RowsOfPage);
+                    command.Parameters.AddWithValue("@Condition", AGetHeaderPicklistTokoModel.Condition);
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = command;
+                    da.Fill(Data);
+                }
+                catch (SqlException ex)
+                {
+                    throw ex;
+                }
+                finally
+                {
+                    con.Close();
+                }
+            }
+            return Data;
+        }
+        internal DataTable GetReportStokTotalRow(string _conString, AGetReportStockDataModel SummaryHeaderBarangBermasalahData, int RowsOfPage)
+        {
+            DataTable Data = new DataTable(); ;
+            using (SqlConnection con = new SqlConnection(_conString))
+            {
+                con.Open();
+                SqlCommand command = new SqlCommand();
+
+                try
+                {
+                    command.Connection = con;
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.CommandText = "[dbo].[GetHeaderOrderTotalRow]";
+                    command.CommandTimeout = 1000;
+
+                    command.Parameters.Clear();
+
+                    command.Parameters.AddWithValue("@RowsOfPage", RowsOfPage);
+                    command.Parameters.AddWithValue("@Condition", SummaryHeaderBarangBermasalahData.Condition);
+
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = command;
+                    da.Fill(Data);
+                }
+                catch (SqlException ex)
+                {
+                    throw ex;
+                }
+                finally
+                {
+                    con.Close();
+                }
+            }
+            return Data;
+        }
+
+
+
+
+        internal DataTable GetReporOrderData(string _conString, AGetReportOrderDataModel AGetHeaderPicklistTokoModel, int RowsOfPage)
+        {
+            DataTable Data = new DataTable(); ;
+            using (SqlConnection con = new SqlConnection(_conString))
+            {
+                con.Open();
+                SqlCommand command = new SqlCommand();
+
+                try
+                {
+                    command.Connection = con;
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.CommandText = "[dbo].[GetReportOrder]";
+                    command.CommandTimeout = 1000;
+
+                    command.Parameters.Clear();
+
+                    command.Parameters.AddWithValue("@PageNumber", AGetHeaderPicklistTokoModel.PageNumber);
+                    command.Parameters.AddWithValue("@RowsOfPage", RowsOfPage);
+                    command.Parameters.AddWithValue("@Condition", AGetHeaderPicklistTokoModel.Condition);
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = command;
+                    da.Fill(Data);
+                }
+                catch (SqlException ex)
+                {
+                    throw ex;
+                }
+                finally
+                {
+                    con.Close();
+                }
+            }
+            return Data;
+        }
+
+
+
+
+
+        internal DataTable GetReportOrderDataTotalRow(string _conString, AGetReportOrderDataModel SummaryHeaderBarangBermasalahData, int RowsOfPage)
+        {
+            DataTable Data = new DataTable(); ;
+            using (SqlConnection con = new SqlConnection(_conString))
+            {
+                con.Open();
+                SqlCommand command = new SqlCommand();
+
+                try
+                {
+                    command.Connection = con;
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.CommandText = "[dbo].[GetReportOrderTotalRow]";
+                    command.CommandTimeout = 1000;
+
+                    command.Parameters.Clear();
+
+                    command.Parameters.AddWithValue("@RowsOfPage", RowsOfPage);
+                    command.Parameters.AddWithValue("@Condition", SummaryHeaderBarangBermasalahData.Condition);
+
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = command;
+                    da.Fill(Data);
+                }
+                catch (SqlException ex)
+                {
+                    throw ex;
+                }
+                finally
+                {
+                    con.Close();
+                }
+            }
+            return Data;
+        }
+
+
     }
 }

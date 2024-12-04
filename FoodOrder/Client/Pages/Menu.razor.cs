@@ -2,10 +2,12 @@
 using FoodOrder.Client.Services;
 using FoodOrder.Shared.FoodOrderModel;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 using Newtonsoft.Json.Linq;
 using System.ComponentModel;
 using System.Net.NetworkInformation;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FoodOrder.Client.Pages
 {
@@ -41,6 +43,9 @@ namespace FoodOrder.Client.Pages
 
 
         private bool isAddMasterItem = false;
+        private bool isEditMasterItem = false;
+
+        private bool isDeleteMasterItem = false;
 
         private bool IsOrder = false;
         private int jumlah = 1; // Inisialisasi default awal
@@ -50,17 +55,32 @@ namespace FoodOrder.Client.Pages
         private Dictionary<string, int> itemQuantities = new Dictionary<string, int>();
         private string _nomormeja;
 
+       
+
+        List<DetailFileType> DetailFileType = new List<DetailFileType>();
+        private Guid inputFileId = Guid.NewGuid();
+        private List<string> imageBase64List = new();
+        private Dictionary<string, string> itemImages = new Dictionary<string, string>();
+        private string selectedNamaItem = string.Empty;
+        private string selectedHarga = string.Empty;
+        private string selectedIdItem = string.Empty;
+
+        private string QTYReady;
+        private bool isLoading = false;
         protected override async Task OnInitializedAsync()
         {
+            isLoading = true; 
+
             token = sessionStorage.GetItem<string>("Token");
             await LoadData();
             await LoadDataCategory();
 
-            // Pilih tab pertama jika kategori tersedia
             if (getItemDataCategory.Any())
             {
                 selectedTab = getItemDataCategory.First().IdJenis;
             }
+
+            isLoading = false; 
         }
 
         public class InsertMasterItemModel
@@ -86,9 +106,9 @@ namespace FoodOrder.Client.Pages
 
         private void AddNewMasterItemEntry()
         {
-            // Tambahkan entry baru ke list
+           
             masterItemAddEntries.Add(new InsertMasterItemModel());
-            StateHasChanged(); // Perbarui UI
+            StateHasChanged(); 
         }
 
         private void RemoveLoadingManifestEntry(int index)
@@ -96,13 +116,13 @@ namespace FoodOrder.Client.Pages
             if (index >= 0 && index < masterItemAddEntries.Count)
             {
                 masterItemAddEntries.RemoveAt(index);
-                StateHasChanged(); // Perbarui UI
+                StateHasChanged(); 
             }
         }
 
         private void CloseAddMenuModal()
         {
-            // Reset daftar entri ketika modal ditutup
+           
             masterItemAddEntries.Clear();
             isAddMasterItem = false;
         }
@@ -126,9 +146,10 @@ namespace FoodOrder.Client.Pages
                 };
 
                 var resultceknopol = await FoodOrderService.GetMasterItem(acongceknopol, token);
-                if (resultceknopol.isSuccess)
+
+                if (resultceknopol.isSuccess && resultceknopol.Data != null)
                 {
-                    getItemData = resultceknopol.Data
+                    getItemData = resultceknopol.Data?
                         .Select(g => new MasterItem
                         {
                             IdItem = g.IdItem,
@@ -137,19 +158,38 @@ namespace FoodOrder.Client.Pages
                             QtyAvailable = g.QtyAvailable,
                             Tersedia = g.Tersedia,
                             IdJenis = g.IdJenis
-                        }).ToList();
+                        }).ToList() ?? new List<MasterItem>();
 
-                    if (getItemData == null || !getItemData.Any())
+                    itemImages = new Dictionary<string, string>();
+
+                    foreach (var file in resultceknopol.Data)
                     {
-                        alertMessage = "Data tidak ditemukan.";
+                        if (file.fileContent != null)
+                        {
+                            var base64Image = Convert.ToBase64String(file.fileContent);
+                            itemImages[file.IdItem] = base64Image; 
+                        }
+                    }
+
+                    if (!getItemData.Any())
+                    {
+                        alertMessage = "Data Kosong";
                     }
                 }
+                else
+                {
+                    alertMessage = "Data Kosong";
+                }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                alertMessage = $"An error occurred: {ex.Message}";
+               
+                alertMessage = "Data Kosong";
             }
         }
+
+
+
 
         private async Task LoadDataCategory()
         {
@@ -168,26 +208,33 @@ namespace FoodOrder.Client.Pages
                 };
 
                 var resultceknopol = await FoodOrderService.GetCategory(acongceknopol, token);
-                if (resultceknopol.isSuccess)
+
+                if (resultceknopol.isSuccess && resultceknopol.Data != null)
                 {
-                    getItemDataCategory = resultceknopol.Data
+                    getItemDataCategory = resultceknopol.Data?
                         .Select(g => new getCategory
                         {
                             IdJenis = g.IdJenis,
                             NamaJenis = g.NamaJenis
-                        }).ToList();
+                        }).ToList() ?? new List<getCategory>();
 
-                    if (getItemDataCategory == null || !getItemDataCategory.Any())
+                    if (!getItemDataCategory.Any())
                     {
-                        alertMessage = "Data tidak ditemukan.";
+                        alertMessage = "Data Kosong";
                     }
                 }
+                else
+                {
+                    alertMessage = "Data Kosong";
+                }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                alertMessage = $"An error occurred: {ex.Message}";
+               
+                alertMessage = "Data Kosong";
             }
         }
+
 
         private void SelectTab(string idJenis)
         {
@@ -204,7 +251,7 @@ namespace FoodOrder.Client.Pages
         {
             isAddMasterItem = true;
 
-            // Tambahkan satu entri awal jika list kosong
+            
             if (masterItemAddEntries.Count == 0)
             {
                 masterItemAddEntries.Add(new InsertMasterItemModel());
@@ -215,11 +262,7 @@ namespace FoodOrder.Client.Pages
         public bool ShouldShowSaveProsesMuat => irestService.activeUsers.Role == "1";
 
 
-        private void EditStatus(MasterItem item)
-        {
-            item.IsEditing = true;
-        }
-
+     
         private async Task SaveStatus(string idItem, string tersedia)
         {
             string msg = string.Empty;
@@ -297,7 +340,8 @@ namespace FoodOrder.Client.Pages
                     Data = new AddNewMenu
                     {
                         GetMenuModel = sentcreatemenu,
-                        SentAddMenuModel = createmenunewmodel
+                        SentAddMenuModel = createmenunewmodel,
+                        DetailFileType = DetailFileType
 
                     }
 
@@ -329,53 +373,65 @@ namespace FoodOrder.Client.Pages
         }
         private async Task PopUpOrder(string idItem, string itemName, int harga)
         {
+            isLoading = true;
             int qty = GetItemQuantity(idItem);
-            if (!selectedItemNames.Contains(itemName))
-            {
-                selectedItemNames.Add(itemName);
-            }
-            var existingDetail = currentOrderDetails.FirstOrDefault(d => d.IdItem == idItem);
 
-            if (existingDetail != null)
+         
+            var item = getItemData.FirstOrDefault(x => x.IdItem == idItem);
+            if (item != null && Convert.ToInt32(item.QtyAvailable) >= qty)
             {
-                existingDetail.Qty = (int.Parse(existingDetail.Qty) + qty).ToString();
-                existingDetail.Total = (int.Parse(existingDetail.Qty) * harga).ToString();
+               
+                item.QtyAvailable = (Convert.ToInt32(item.QtyAvailable) - qty).ToString();
+
+              
+                var existingDetail = currentOrderDetails.FirstOrDefault(d => d.IdItem == idItem);
+
+                if (existingDetail != null)
+                {
+                    existingDetail.Qty = (int.Parse(existingDetail.Qty) + qty).ToString();
+                    existingDetail.Total = (int.Parse(existingDetail.Qty) * harga).ToString();
+                }
+                else
+                {
+                    var newDetail = new OrderDetail
+                    {
+                        IdItem = idItem,
+                        Qty = qty.ToString(),
+                        Total = (qty * harga).ToString()
+                    };
+
+                    currentOrderDetails.Add(newDetail);
+                }
+
+              
+                itemQuantities[idItem] = 1;
+
+                isLoading = false;
+                await JSRuntime.InvokeVoidAsync("alert", "Item berhasil ditambahkan ke keranjang!");
+                await InvokeAsync(StateHasChanged);
+
             }
             else
             {
-                var newDetail = new OrderDetail
-                {
-
-                   
-                    IdItem = idItem,
-                    Qty = qty.ToString(),
-                    Total = (qty * harga).ToString()
-                };
-
-                currentOrderDetails.Add(newDetail);
+               
+                await JSRuntime.InvokeVoidAsync("alert", "Jumlah melebihi stok yang tersedia!");
+                isLoading = false;
             }
-
-            itemQuantities[idItem] = 1;
-            await JSRuntime.InvokeVoidAsync("alert", "Item berhasil ditambahkan");
-            await InvokeAsync(StateHasChanged);
         }
 
+        
 
-        private void RemoveOrderDetail(OrderDetail detail)
-        {
-            currentOrderDetails.Remove(detail);
-        }
 
         private int GetItemQuantity(string idItem)
         {
             if (!itemQuantities.ContainsKey(idItem))
             {
-                itemQuantities[idItem] = 1; // Set default value 1 jika belum ada
+                itemQuantities[idItem] = 1; 
             }
             return itemQuantities[idItem];
         }
 
-        // Fungsi untuk menambah jumlah item berdasarkan idItem
+     
         private void IncrementJumlah(string idItem)
         {
             if (itemQuantities.ContainsKey(idItem))
@@ -388,7 +444,7 @@ namespace FoodOrder.Client.Pages
             }
         }
 
-        // Fungsi untuk mengurangi jumlah item berdasarkan idItem
+       
         private void DecrementJumlah(string idItem)
         {
             if (itemQuantities.ContainsKey(idItem) && itemQuantities[idItem] > 1)
@@ -403,12 +459,14 @@ namespace FoodOrder.Client.Pages
         }
         private async Task InsertOrder()
         {
+            isLoading = true;
 
             if (string.IsNullOrWhiteSpace(NomorMeja))
             {
-                // Tampilkan alert jika 'reasonnya' kosong
+               
                 await JSRuntime.InvokeVoidAsync("alert", "Nomor Meja harus diisi.");
                 return;
+
             }
 
             string msg = string.Empty;
@@ -449,18 +507,231 @@ namespace FoodOrder.Client.Pages
                     await LoadDataCategory();
                     ShowOrderList = false;
                     currentOrderDetails.Clear();
+                    isLoading = false;
                 }
                 else
                 {
                     await JSRuntime.InvokeVoidAsync("alert", "Data Gagal Dikirimkan");
+                    isLoading = false;
                 }
             }
             catch (Exception ex)
             {
                 alertMessage = $"An error occurred: {ex.Message}";
+                isLoading = false;
+            }
+        }
+        private async Task OnInputFileChange(InputFileChangeEventArgs e, int Id)
+        {
+            try
+            {
+                if (e.File.Size <= 5242880)
+                {
+                    var newData = DetailFileType.Where(x => x.Id == Id).FirstOrDefault();
+
+                    if (newData != null)
+                    {
+                        using var datafile = e.File.OpenReadStream(5242880);
+                        var fileBytes = new byte[datafile.Length];
+                        await datafile.ReadAsync(fileBytes, 0, (int)datafile.Length);
+
+                        newData.fileContent = fileBytes;
+                        newData.FileName = e.File.Name;
+                        newData.Size = Convert.ToInt32(e.File.Size);
+                    }
+                }
+                else
+                {
+                   
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString()); 
+            }
+            StateHasChanged();
+        }
+        private void deleteTask(DetailFileType data)
+        {
+            DetailFileType.Remove(data);
+        }
+
+
+        private void addLine()
+        {
+            DetailFileType newData = new DetailFileType();
+            var lastId = DetailFileType.OrderByDescending(x => x.Id).FirstOrDefault();
+            if (lastId == null)
+            {
+                newData.Id = 1;
+            }
+            else
+            {
+                newData.Id = lastId.Id + 1;
+            }
+
+            DetailFileType.Add(newData);
+        }
+
+
+        private void EditMenu(MasterItem item)
+        {
+           
+            selectedIdItem = item.IdItem;
+            selectedNamaItem = item.NamaItem;
+            selectedHarga = item.Harga.ToString();
+
+           
+            isEditMasterItem = true;
+        }
+
+
+        private void CloseEditMenuModal()
+        {
+           
+            isEditMasterItem = false;
+            selectedNamaItem = string.Empty;
+            selectedHarga = string.Empty;
+            selectedIdItem = string.Empty;
+        }
+
+
+        private async Task UpdateMasterItem()
+        {
+            isLoading = true;
+            string msg = string.Empty;
+
+            try
+            {
+                var sentcreatemenu = new SentUpdateItemModel
+                {
+                    IdItem = selectedIdItem,
+                    NamaItem = selectedNamaItem,
+                    Harga = selectedHarga,
+                    QTY = QTYReady
+                };
+
+                QueryModel<SentUpdateItemModel> acongceknopol = new QueryModel<SentUpdateItemModel>
+                {
+                    Data = sentcreatemenu,
+                    username = irestService.activeUsers.Username.ToString()
+                };
+
+                var resultceknopol = await FoodOrderService.UpdateItem(token, acongceknopol);
+                msg = resultceknopol.Data.message.ToString();
+
+
+                if (DataItemErr.Count == 0)
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", msg);
+                    await LoadData();
+                    CloseEditMenuModal();
+                    isLoading = false;
+
+
+                }
+                else
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "Data Gagal Dikirimkan");
+                    isLoading = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                alertMessage = $"An error occurred: {ex.Message}";
+                isLoading = false;
             }
         }
 
+
+
+        private void DeleteMenu(MasterItem item)
+        {
+
+            selectedIdItem = item.IdItem;
+            selectedNamaItem = item.NamaItem;
+            selectedHarga = item.Harga.ToString();
+
+
+            isDeleteMasterItem = true;
+        }
+
+
+
+
+        private async Task DeleteMasterItem()
+        {
+            isLoading = true;
+            string msg = string.Empty;
+
+            try
+            {
+                var sentcreatemenu = new SentDeleteItemModel
+                {
+                    IdItem = selectedIdItem
+                  
+                };
+
+                QueryModel<SentDeleteItemModel> acongceknopol = new QueryModel<SentDeleteItemModel>
+                {
+                    Data = sentcreatemenu,
+                    username = irestService.activeUsers.Username.ToString()
+                };
+
+                var resultceknopol = await FoodOrderService.DeleteItemMaster(token, acongceknopol);
+                msg = resultceknopol.Data.message.ToString();
+
+
+                if (DataItemErr.Count == 0)
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", msg);
+                    await LoadData();
+                    CloseDeleteMenuModal();
+                    isLoading = false;
+
+
+                }
+                else
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "Data Gagal Dikirimkan");
+                    isLoading = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                alertMessage = $"An error occurred: {ex.Message}";
+                isLoading = false;
+            }
+        }
+
+
+        private void CloseDeleteMenuModal()
+        {
+
+            isDeleteMasterItem = false;
+            selectedNamaItem = string.Empty;
+            selectedHarga = string.Empty;
+            selectedIdItem = string.Empty;
+        }
+
+
+        private void RemoveOrderDetail(OrderDetail detail)
+        {
+
+            var item = getItemData.FirstOrDefault(x => x.IdItem == detail.IdItem);
+
+            if (item != null)
+            {
+
+                item.QtyAvailable = (Convert.ToInt32(item.QtyAvailable) + int.Parse(detail.Qty)).ToString();
+            }
+
+
+            currentOrderDetails.Remove(detail);
+
+
+            StateHasChanged();
+        }
 
     }
 }
