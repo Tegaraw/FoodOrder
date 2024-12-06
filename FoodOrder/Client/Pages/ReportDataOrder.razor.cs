@@ -58,14 +58,12 @@ namespace FoodOrder.Client.Pages
         {
             FileResult.Clear();
 
-            QueryModel<AGetReportOrderDataModel> updateModel = new QueryModel<AGetReportOrderDataModel>();
-            updateModel.Data = new AGetReportOrderDataModel();
+            if (filter == string.Empty)
+            {
+                filter = "0";
+            }
 
-
-            updateModel.Data.PageNumber = PageNumber;
-            updateModel.Data.Condition = filter;
-
-            var data = await FoodOrderService.GetReporOrderData(token, updateModel);
+            var data = await FoodOrderService.GetReporOrderData(token,  PageNumber, filter);
 
             if (data.Data != null)
             {
@@ -83,12 +81,12 @@ namespace FoodOrder.Client.Pages
         {
             try
             {
-                QueryModel<AGetReportOrderDataModel> updateModel = new QueryModel<AGetReportOrderDataModel>();
-                updateModel.Data = new AGetReportOrderDataModel();
+                if (filter == string.Empty)
+                {
+                    filter = "0";
+                }
 
-                updateModel.Data.Condition = filter;
-
-                var restRow = await FoodOrderService.GetReportOrderDataTotalRow(token, updateModel);
+                var restRow = await FoodOrderService.GetReportOrderDataTotalRow(token, filter);
                 fuelStockNumberofPages = restRow.Data;
             }
             catch (Exception ex)

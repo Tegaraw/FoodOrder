@@ -58,14 +58,13 @@ namespace FoodOrder.Client.Pages
         {
             FileResult.Clear();
 
-            QueryModel<AGetReportStockDataModel> updateModel = new QueryModel<AGetReportStockDataModel>();
-            updateModel.Data = new AGetReportStockDataModel();
-           
+            if (filter == string.Empty)
+            {
+                filter = "0";
+            }
 
-            updateModel.Data.PageNumber = PageNumber;
-            updateModel.Data.Condition = filter;
 
-            var data = await FoodOrderService.GetReportStok(token, updateModel);
+            var data = await FoodOrderService.GetReportStok(token, PageNumber, "0");
 
             if (data.Data != null)
             {
@@ -75,19 +74,18 @@ namespace FoodOrder.Client.Pages
 
 
             }
-            StateHasChanged();
         }
 
         private async Task GetCrossDockHeaderTotalRow(string filter)
         {
             try
             {
-                QueryModel<AGetReportStockDataModel> updateModel = new QueryModel<AGetReportStockDataModel>();
-                updateModel.Data = new AGetReportStockDataModel();
-              
-                updateModel.Data.Condition = filter;
+                if (filter == string.Empty)
+                {
+                    filter = "0";
+                }
 
-                var restRow = await FoodOrderService.GetReportStokTotalRow(token, updateModel);
+                var restRow = await FoodOrderService.GetReportStokTotalRow(token, "0");
                 fuelStockNumberofPages = restRow.Data;
             }
             catch (Exception ex)

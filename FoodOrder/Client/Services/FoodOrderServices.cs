@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using FoodOrder.Shared.FoodOrderModel;
 using System.Net.Http.Json;
+using System.ComponentModel;
 
 namespace FoodOrder.Client.Services
 {
@@ -54,35 +55,30 @@ namespace FoodOrder.Client.Services
             return res;
         }
 
-
-        public async Task<ResultModel<List<MasterItem>>> GetMasterItem(QueryModel<GetMenu> data, string Token)
+        public async Task<ResultModel<List<MasterItem>>> GetMasterItem(string idjenis, string token)
         {
             ResultModel<List<MasterItem>> res = new ResultModel<List<MasterItem>>();
-
             try
             {
                 _http.DefaultRequestHeaders.Clear();
-                _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {Token}");
-                var result = await _http.PostAsJsonAsync<QueryModel<GetMenu>>($"api/ToRestapi/GetMasterItem", data);
-                var respBody = await result.Content.ReadFromJsonAsync<ResultModel<List<MasterItem>>>();
+                _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+                var result = await _http.GetFromJsonAsync<ResultModel<List<MasterItem>>>($"api/ToRestapi/GetMasterItem/{idjenis}");
 
-                if (respBody.isSuccess)
+                if (result.isSuccess)
                 {
-                    res.Data = respBody.Data;
+                    res.Data = result.Data;
 
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                 }
                 else
                 {
                     res.Data = null;
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                 }
-
             }
             catch (Exception ex)
             {
@@ -90,40 +86,36 @@ namespace FoodOrder.Client.Services
                 res.isSuccess = false;
                 res.ErrorCode = "99";
                 res.ErrorMessage = ex.Message;
-
             }
             return res;
         }
 
 
-        public async Task<ResultModel<List<getCategory>>> GetCategory(QueryModel<GetMenu> data, string Token)
+
+        public async Task<ResultModel<List<getCategory>>> GetCategory(string idjenis, string token)
         {
             ResultModel<List<getCategory>> res = new ResultModel<List<getCategory>>();
-
             try
             {
                 _http.DefaultRequestHeaders.Clear();
-                _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {Token}");
-                var result = await _http.PostAsJsonAsync<QueryModel<GetMenu>>($"api/ToRestapi/GetCategory", data);
-                var respBody = await result.Content.ReadFromJsonAsync<ResultModel<List<getCategory>>>();
+                _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+                var result = await _http.GetFromJsonAsync<ResultModel<List<getCategory>>>($"api/ToRestapi/GetCategory/{idjenis}");
 
-                if (respBody.isSuccess)
+                if (result.isSuccess)
                 {
-                    res.Data = respBody.Data;
+                    res.Data = result.Data;
 
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                 }
                 else
                 {
                     res.Data = null;
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                 }
-
             }
             catch (Exception ex)
             {
@@ -131,10 +123,15 @@ namespace FoodOrder.Client.Services
                 res.isSuccess = false;
                 res.ErrorCode = "99";
                 res.ErrorMessage = ex.Message;
-
             }
             return res;
         }
+
+
+
+
+
+       
         public async Task<ResultModel<ReturnMessage>> UpdateTersedia(string token, QueryModel<GetMenu> File)
         {
             ResultModel<ReturnMessage> res = new ResultModel<ReturnMessage>();
@@ -217,74 +214,33 @@ namespace FoodOrder.Client.Services
             return res;
         }
 
-        public async Task<ResultModel<List<GetOrderData>>> GetHeaderOrder(string Token, QueryModel<AGetOrderModel> data)
+
+
+
+        public async Task<ResultModel<List<GetOrderData>>> GetHeaderOrder(string token, string Username, string Role, int PageNumber, string filter)
         {
             ResultModel<List<GetOrderData>> res = new ResultModel<List<GetOrderData>>();
-
-            try
-            {
-                _http.DefaultRequestHeaders.Clear();
-                _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {Token}");
-                var result = await _http.PostAsJsonAsync<QueryModel<AGetOrderModel>>($"api/ToRestapi/GetHeaderOrder", data);
-                var respBody = await result.Content.ReadFromJsonAsync<ResultModel<List<GetOrderData>>>();
-
-                if (respBody.isSuccess)
-                {
-                    res.Data = respBody.Data;
-
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
-                }
-                else
-                {
-                    res.Data = null;
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-                }
-
-            }
-            catch (Exception ex)
-            {
-                res.Data = null;
-                res.isSuccess = false;
-                res.ErrorCode = "99";
-                res.ErrorMessage = ex.Message;
-
-            }
-            return res;
-        }
-        public async Task<ResultModel<int?>> GetDataOrderTotalRow(string token, QueryModel<AGetOrderModel> data)
-        {
-            ResultModel<int?> res = new ResultModel<int?>();
-
             try
             {
                 _http.DefaultRequestHeaders.Clear();
                 _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
-                var result = await _http.PostAsJsonAsync<QueryModel<AGetOrderModel>>($"api/ToRestapi/GetDataOrderTotalRow", data);
-                var respBody = await result.Content.ReadFromJsonAsync<ResultModel<int?>>();
+                var result = await _http.GetFromJsonAsync<ResultModel<List<GetOrderData>>>($"api/ToRestapi/GetHeaderOrder/{Username}/{Role}/{PageNumber}/{filter}");
 
-                if (respBody.isSuccess)
+                if (result.isSuccess)
                 {
-                    res.Data = respBody.Data;
+                    res.Data = result.Data;
 
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                 }
                 else
                 {
                     res.Data = null;
-
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                 }
-
             }
             catch (Exception ex)
             {
@@ -295,6 +251,51 @@ namespace FoodOrder.Client.Services
             }
             return res;
         }
+
+
+
+        public async Task<ResultModel<int?>> GetDataOrderTotalRow(string token, string Username, string Role, string filter)
+        {
+            ResultModel<int?> res = new ResultModel<int?>();
+            try
+            {
+                _http.DefaultRequestHeaders.Clear();
+                _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+                var result = await _http.GetFromJsonAsync<ResultModel<int?>>($"api/ToRestapi/GetDataOrderTotalRow/{Username}/{Role}/{filter}");
+
+                if (result.isSuccess)
+                {
+                    res.Data = result.Data;
+
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
+                }
+                else
+                {
+                    res.Data = null;
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
+                }
+            }
+            catch (Exception ex)
+            {
+                res.Data = null;
+                res.isSuccess = false;
+                res.ErrorCode = "99";
+                res.ErrorMessage = ex.Message;
+            }
+            return res;
+        }
+
+
+
+
+
+
+
+       
         public async Task<ResultModel<List<getOrderDetail>>> GetDetailOrder(QueryModel<GetDetailOrder> data, string Token)
         {
             ResultModel<List<getOrderDetail>> res = new ResultModel<List<getOrderDetail>>();
@@ -476,22 +477,34 @@ namespace FoodOrder.Client.Services
         }
 
 
-        public async Task<ResultModel<ReturnMessage>> DeleteItemMaster(string token, QueryModel<SentDeleteItemModel> File)
+        public async Task<ResultModel<ReturnMessage>> DeleteItemMaster(string token, string id)
         {
             ResultModel<ReturnMessage> res = new ResultModel<ReturnMessage>();
-
             try
             {
                 _http.DefaultRequestHeaders.Clear();
                 _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+                //var result = await _http.GetFromJsonAsync<ResultModel<bool>>($"api/ToPOSapi/DeleteItem/{id}");
+                var request = new HttpRequestMessage(HttpMethod.Delete, $"api/ToRestapi/DeleteItemMaster/{id}");
+                var response = await _http.SendAsync(request);
 
-                var resault = await _http.PostAsJsonAsync<QueryModel<SentDeleteItemModel>>($"api/ToRestapi/DeleteItemMaster", File);
-                var result = await resault.Content.ReadFromJsonAsync<ResultModel<ReturnMessage>>();
 
-                res.Data = result.Data;
-                res.isSuccess = result.isSuccess;
-                res.ErrorCode = result.ErrorCode;
-                res.ErrorMessage = result.ErrorMessage;
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<ResultModel<ReturnMessage>>();
+                    res.Data = result.Data;
+
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
+                }
+                else
+                {
+                    res.Data = null;
+                    res.isSuccess = response.IsSuccessStatusCode;
+                    res.ErrorCode = response.StatusCode.ToString();
+                    res.ErrorMessage = response.RequestMessage.ToString();
+                }
             }
             catch (Exception ex)
             {
@@ -503,75 +516,35 @@ namespace FoodOrder.Client.Services
             return res;
         }
 
-        public async Task<ResultModel<List<GetReportStockData>>> GetReportStok(string Token, QueryModel<AGetReportStockDataModel> data)
+
+
+
+
+
+        public async Task<ResultModel<List<GetReportStockData>>> GetReportStok(string token, int PageNumber, string filter)
         {
             ResultModel<List<GetReportStockData>> res = new ResultModel<List<GetReportStockData>>();
-
-            try
-            {
-                _http.DefaultRequestHeaders.Clear();
-                _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {Token}");
-                var result = await _http.PostAsJsonAsync<QueryModel<AGetReportStockDataModel>>($"api/ToRestapi/GetReportStok", data);
-                var respBody = await result.Content.ReadFromJsonAsync<ResultModel<List<GetReportStockData>>>();
-
-                if (respBody.isSuccess)
-                {
-                    res.Data = respBody.Data;
-
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
-                }
-                else
-                {
-                    res.Data = null;
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-                }
-
-            }
-            catch (Exception ex)
-            {
-                res.Data = null;
-                res.isSuccess = false;
-                res.ErrorCode = "99";
-                res.ErrorMessage = ex.Message;
-
-            }
-            return res;
-        }
-
-        public async Task<ResultModel<int?>> GetReportStokTotalRow(string token, QueryModel<AGetReportStockDataModel> data)
-        {
-            ResultModel<int?> res = new ResultModel<int?>();
-
             try
             {
                 _http.DefaultRequestHeaders.Clear();
                 _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
-                var result = await _http.PostAsJsonAsync<QueryModel<AGetReportStockDataModel>>($"api/ToRestapi/GetReportStokTotalRow", data);
-                var respBody = await result.Content.ReadFromJsonAsync<ResultModel<int?>>();
+                var result = await _http.GetFromJsonAsync<ResultModel<List<GetReportStockData>>>($"api/ToRestapi/GetReportStok/{PageNumber}/{filter}");
 
-                if (respBody.isSuccess)
+                if (result.isSuccess)
                 {
-                    res.Data = respBody.Data;
+                    res.Data = result.Data;
 
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                 }
                 else
                 {
                     res.Data = null;
-
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                 }
-
             }
             catch (Exception ex)
             {
@@ -585,76 +558,72 @@ namespace FoodOrder.Client.Services
 
 
 
-        public async Task<ResultModel<List<GetReportOrderData>>> GetReporOrderData(string Token, QueryModel<AGetReportOrderDataModel> data)
+
+
+        public async Task<ResultModel<int?>> GetReportStokTotalRow(string token,  string filter)
+        {
+            ResultModel<int?> res = new ResultModel<int?>();
+            try
+            {
+                _http.DefaultRequestHeaders.Clear();
+                _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+                var result = await _http.GetFromJsonAsync<ResultModel<int?>>($"api/ToRestapi/GetReportStokTotalRow/{filter}");
+
+                if (result.isSuccess)
+                {
+                    res.Data = result.Data;
+
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
+                }
+                else
+                {
+                    res.Data = null;
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
+                }
+            }
+            catch (Exception ex)
+            {
+                res.Data = null;
+                res.isSuccess = false;
+                res.ErrorCode = "99";
+                res.ErrorMessage = ex.Message;
+            }
+            return res;
+        }
+
+
+
+
+
+
+        public async Task<ResultModel<List<GetReportOrderData>>> GetReporOrderData(string token, int PageNumber, string filter)
         {
             ResultModel<List<GetReportOrderData>> res = new ResultModel<List<GetReportOrderData>>();
-
-            try
-            {
-                _http.DefaultRequestHeaders.Clear();
-                _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {Token}");
-                var result = await _http.PostAsJsonAsync<QueryModel<AGetReportOrderDataModel>>($"api/ToRestapi/GetReporOrderData", data);
-                var respBody = await result.Content.ReadFromJsonAsync<ResultModel<List<GetReportOrderData>>>();
-
-                if (respBody.isSuccess)
-                {
-                    res.Data = respBody.Data;
-
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
-                }
-                else
-                {
-                    res.Data = null;
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-                }
-
-            }
-            catch (Exception ex)
-            {
-                res.Data = null;
-                res.isSuccess = false;
-                res.ErrorCode = "99";
-                res.ErrorMessage = ex.Message;
-
-            }
-            return res;
-        }
-
-
-        public async Task<ResultModel<int?>> GetReportOrderDataTotalRow(string token, QueryModel<AGetReportOrderDataModel> data)
-        {
-            ResultModel<int?> res = new ResultModel<int?>();
-
             try
             {
                 _http.DefaultRequestHeaders.Clear();
                 _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
-                var result = await _http.PostAsJsonAsync<QueryModel<AGetReportOrderDataModel>>($"api/ToRestapi/GetReportOrderDataTotalRow", data);
-                var respBody = await result.Content.ReadFromJsonAsync<ResultModel<int?>>();
+                var result = await _http.GetFromJsonAsync<ResultModel<List<GetReportOrderData>>>($"api/ToRestapi/GetReporOrderData/{PageNumber}/{filter}");
 
-                if (respBody.isSuccess)
+                if (result.isSuccess)
                 {
-                    res.Data = respBody.Data;
+                    res.Data = result.Data;
 
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                 }
                 else
                 {
                     res.Data = null;
-
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                 }
-
             }
             catch (Exception ex)
             {
@@ -665,5 +634,49 @@ namespace FoodOrder.Client.Services
             }
             return res;
         }
+
+
+        public async Task<ResultModel<int?>> GetReportOrderDataTotalRow(string token, string filter)
+        {
+            ResultModel<int?> res = new ResultModel<int?>();
+            try
+            {
+                _http.DefaultRequestHeaders.Clear();
+                _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+                var result = await _http.GetFromJsonAsync<ResultModel<int?>>($"api/ToRestapi/GetReportOrderDataTotalRow/{filter}");
+
+                if (result.isSuccess)
+                {
+                    res.Data = result.Data;
+
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
+                }
+                else
+                {
+                    res.Data = null;
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
+                }
+            }
+            catch (Exception ex)
+            {
+                res.Data = null;
+                res.isSuccess = false;
+                res.ErrorCode = "99";
+                res.ErrorMessage = ex.Message;
+            }
+            return res;
+        }
+
+
+
+
+
+
+
+        
     }
 }

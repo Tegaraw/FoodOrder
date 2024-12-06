@@ -1,4 +1,5 @@
-﻿using FoodOrderAPI.Models;
+﻿using DocumentFormat.OpenXml.Presentation;
+using FoodOrderAPI.Models;
 using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
 using System.Data;
@@ -333,7 +334,7 @@ namespace FoodOrderAPI.Services
             }
         }
 
-        internal DataTable GetHeaderOrder(string _conString, AGetOrderModel AGetHeaderPicklistTokoModel, int RowsOfPage)
+        internal DataTable GetHeaderOrder(string _conString, string Username, string Role, int PageNumber, string filter, int RowsOfPage)
         {
             DataTable Data = new DataTable(); ;
             using (SqlConnection con = new SqlConnection(_conString))
@@ -349,11 +350,11 @@ namespace FoodOrderAPI.Services
                     command.CommandTimeout = 1000;
 
                     command.Parameters.Clear();
-                    command.Parameters.AddWithValue("@Username", AGetHeaderPicklistTokoModel.GetHead.UserName);
-                    command.Parameters.AddWithValue("@Role", AGetHeaderPicklistTokoModel.GetHead.Role);
-                    command.Parameters.AddWithValue("@PageNumber", AGetHeaderPicklistTokoModel.PageNumber);
+                    command.Parameters.AddWithValue("@Username", Username);
+                    command.Parameters.AddWithValue("@Role", Role);
+                    command.Parameters.AddWithValue("@PageNumber", PageNumber);
                     command.Parameters.AddWithValue("@RowsOfPage", RowsOfPage);
-                    command.Parameters.AddWithValue("@Condition", AGetHeaderPicklistTokoModel.Condition);
+                    command.Parameters.AddWithValue("@Condition", filter);
                     SqlDataAdapter da = new SqlDataAdapter();
                     da.SelectCommand = command;
                     da.Fill(Data);
@@ -370,7 +371,7 @@ namespace FoodOrderAPI.Services
             return Data;
         }
 
-        internal DataTable GetDataOrderTotalRow(string _conString, AGetOrderModel SummaryHeaderBarangBermasalahData, int RowsOfPage)
+        internal DataTable GetDataOrderTotalRow(string _conString, string Username, string Role, string filter, int RowsOfPage)
         {
             DataTable Data = new DataTable(); ;
             using (SqlConnection con = new SqlConnection(_conString))
@@ -387,10 +388,10 @@ namespace FoodOrderAPI.Services
 
                     command.Parameters.Clear();
 
-                    command.Parameters.AddWithValue("@Username", SummaryHeaderBarangBermasalahData.GetHead.UserName);
-                    command.Parameters.AddWithValue("@Role", SummaryHeaderBarangBermasalahData.GetHead.Role);
+                    command.Parameters.AddWithValue("@Username", Username);
+                    command.Parameters.AddWithValue("@Role", Role);
                     command.Parameters.AddWithValue("@RowsOfPage", RowsOfPage);
-                    command.Parameters.AddWithValue("@Condition", SummaryHeaderBarangBermasalahData.Condition);
+                    command.Parameters.AddWithValue("@Condition", filter);
 
                     SqlDataAdapter da = new SqlDataAdapter();
                     da.SelectCommand = command;
@@ -748,7 +749,7 @@ namespace FoodOrderAPI.Services
         }
 
 
-        internal DataTable DeleteItemMaster(string _conString, string IdItem)
+        internal DataTable DeleteItemMaster(string _conString, string id)
         {
             DataTable Data = new DataTable(); ;
             using (SqlConnection con = new SqlConnection(_conString))
@@ -764,7 +765,7 @@ namespace FoodOrderAPI.Services
                     command.CommandTimeout = 1000;
 
                     command.Parameters.Clear();
-                    command.Parameters.AddWithValue("@IdItem", IdItem);
+                    command.Parameters.AddWithValue("@IdItem", id);
                    
 
 
@@ -787,7 +788,7 @@ namespace FoodOrderAPI.Services
         }
 
 
-        internal DataTable GetReportStok(string _conString, AGetReportStockDataModel AGetHeaderPicklistTokoModel, int RowsOfPage)
+        internal DataTable GetReportStok(string _conString, int PageNumber, string Condition, int RowsOfPage)
         {
             DataTable Data = new DataTable(); ;
             using (SqlConnection con = new SqlConnection(_conString))
@@ -804,9 +805,9 @@ namespace FoodOrderAPI.Services
 
                     command.Parameters.Clear();
                   
-                    command.Parameters.AddWithValue("@PageNumber", AGetHeaderPicklistTokoModel.PageNumber);
+                    command.Parameters.AddWithValue("@PageNumber", PageNumber);
                     command.Parameters.AddWithValue("@RowsOfPage", RowsOfPage);
-                    command.Parameters.AddWithValue("@Condition", AGetHeaderPicklistTokoModel.Condition);
+                    command.Parameters.AddWithValue("@Condition", Condition);
                     SqlDataAdapter da = new SqlDataAdapter();
                     da.SelectCommand = command;
                     da.Fill(Data);
@@ -822,7 +823,7 @@ namespace FoodOrderAPI.Services
             }
             return Data;
         }
-        internal DataTable GetReportStokTotalRow(string _conString, AGetReportStockDataModel SummaryHeaderBarangBermasalahData, int RowsOfPage)
+        internal DataTable GetReportStokTotalRow(string _conString, string Condition, int RowsOfPage)
         {
             DataTable Data = new DataTable(); ;
             using (SqlConnection con = new SqlConnection(_conString))
@@ -834,13 +835,13 @@ namespace FoodOrderAPI.Services
                 {
                     command.Connection = con;
                     command.CommandType = CommandType.StoredProcedure;
-                    command.CommandText = "[dbo].[GetHeaderOrderTotalRow]";
+                    command.CommandText = "[dbo].[GetReportStokTotalRow]";
                     command.CommandTimeout = 1000;
 
                     command.Parameters.Clear();
 
                     command.Parameters.AddWithValue("@RowsOfPage", RowsOfPage);
-                    command.Parameters.AddWithValue("@Condition", SummaryHeaderBarangBermasalahData.Condition);
+                    command.Parameters.AddWithValue("@Condition", Condition);
 
                     SqlDataAdapter da = new SqlDataAdapter();
                     da.SelectCommand = command;
@@ -861,7 +862,7 @@ namespace FoodOrderAPI.Services
 
 
 
-        internal DataTable GetReporOrderData(string _conString, AGetReportOrderDataModel AGetHeaderPicklistTokoModel, int RowsOfPage)
+        internal DataTable GetReporOrderData(string _conString, int PageNumber, string Condition, int RowsOfPage)
         {
             DataTable Data = new DataTable(); ;
             using (SqlConnection con = new SqlConnection(_conString))
@@ -878,9 +879,9 @@ namespace FoodOrderAPI.Services
 
                     command.Parameters.Clear();
 
-                    command.Parameters.AddWithValue("@PageNumber", AGetHeaderPicklistTokoModel.PageNumber);
+                    command.Parameters.AddWithValue("@PageNumber", PageNumber);
                     command.Parameters.AddWithValue("@RowsOfPage", RowsOfPage);
-                    command.Parameters.AddWithValue("@Condition", AGetHeaderPicklistTokoModel.Condition);
+                    command.Parameters.AddWithValue("@Condition", Condition);
                     SqlDataAdapter da = new SqlDataAdapter();
                     da.SelectCommand = command;
                     da.Fill(Data);
@@ -901,7 +902,7 @@ namespace FoodOrderAPI.Services
 
 
 
-        internal DataTable GetReportOrderDataTotalRow(string _conString, AGetReportOrderDataModel SummaryHeaderBarangBermasalahData, int RowsOfPage)
+        internal DataTable GetReportOrderDataTotalRow(string _conString, string Condition, int RowsOfPage)
         {
             DataTable Data = new DataTable(); ;
             using (SqlConnection con = new SqlConnection(_conString))
@@ -919,7 +920,7 @@ namespace FoodOrderAPI.Services
                     command.Parameters.Clear();
 
                     command.Parameters.AddWithValue("@RowsOfPage", RowsOfPage);
-                    command.Parameters.AddWithValue("@Condition", SummaryHeaderBarangBermasalahData.Condition);
+                    command.Parameters.AddWithValue("@Condition", Condition);
 
                     SqlDataAdapter da = new SqlDataAdapter();
                     da.SelectCommand = command;

@@ -2,6 +2,8 @@
 using DocumentFormat.OpenXml.Spreadsheet;
 using FoodOrderAPI.Models;
 using FoodOrderAPI.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
 
@@ -70,8 +72,10 @@ namespace FoodOrderAPI.Controllers
                 return BadRequest(res);
             }
         }
-        [HttpPost("GetMasterItem")]
-        public async Task<IActionResult> GetMasterItem(QueryModel<GetMenu> data)
+
+        [Authorize]
+        [HttpGet("GetMasterItem/{idjenis}")]
+        public async Task<IActionResult> GetMasterItem([FromHeader(Name = "Authorization")] string token, string idjenis)
         {
             ResultModel<List<MasterItem>> res = new ResultModel<List<MasterItem>>();
             DataTable HeaderData = new DataTable();
@@ -80,10 +84,8 @@ namespace FoodOrderAPI.Controllers
 
             try
             {
-                // Mengambil data dari service
-                HeaderData = _restService.GetMasterItem(_conString, data.Data.IdJenis);
-
-                if (HeaderData != null && HeaderData.Rows.Count > 0)
+                HeaderData = _restService.GetMasterItem(_conString, idjenis);
+                if (HeaderData.Rows.Count > 0)
                 {
                     foreach (DataRow dt in HeaderData.Rows)
                     {
@@ -101,9 +103,10 @@ namespace FoodOrderAPI.Controllers
                             FileType = dt["FileType"]?.ToString(),
                             FilePath = dt["FilePath"]?.ToString(),
                             Size = Convert.ToInt64(dt["Size"] ?? 0)
-                        };
 
+                        };
                         Data.Add(tmp);
+
                     }
 
                     res.Data = Data;
@@ -135,6 +138,7 @@ namespace FoodOrderAPI.Controllers
                     res.isSuccess = true;
                     res.ErrorCode = "01";
                     res.ErrorMessage = "Fetch Empty";
+
                     actionResult = Ok(res);
                 }
             }
@@ -144,15 +148,18 @@ namespace FoodOrderAPI.Controllers
                 res.isSuccess = false;
                 res.ErrorCode = "99";
                 res.ErrorMessage = ex.Message;
+
                 actionResult = BadRequest(res);
             }
-
             return actionResult;
         }
 
 
-        [HttpPost("GetCategory")]
-        public async Task<IActionResult> GetCategory()
+
+
+        [Authorize]
+        [HttpGet("GetCategory/{idjenis}")]
+        public async Task<IActionResult> GetCategory([FromHeader(Name = "Authorization")] string token, string idjenis)
         {
             ResultModel<List<getCategory>> res = new ResultModel<List<getCategory>>();
             DataTable HeaderData = new DataTable();
@@ -168,19 +175,23 @@ namespace FoodOrderAPI.Controllers
                     {
                         getCategory tmp = new getCategory();
 
+
                         tmp.IdJenis = dt["IdJenis"].ToString();
                         tmp.NamaJenis = dt["NamaJenis"].ToString();
-                       
 
+
+                        
                         Data.Add(tmp);
 
                     }
 
                     res.Data = Data;
+
+                  
+
                     res.isSuccess = true;
                     res.ErrorCode = "00";
                     res.ErrorMessage = "";
-
                     actionResult = Ok(res);
                 }
                 else
@@ -205,8 +216,17 @@ namespace FoodOrderAPI.Controllers
             return actionResult;
         }
 
+
+
+
+
+
+
+
+
+        [Authorize]
         [HttpPost("UpdateTersedia")]
-        public async Task<IActionResult> UpdateTersedia(QueryModel<GetMenu> data)
+        public async Task<IActionResult> UpdateTersedia([FromHeader(Name = "Authorization")] string token, QueryModel<GetMenu> data)
         {
             DataTable dataTable = new DataTable();
             ResultModel<ReturnMessage> res = new ResultModel<ReturnMessage>();
@@ -246,9 +266,9 @@ namespace FoodOrderAPI.Controllers
             return actionResult;
         }
 
-
+        [Authorize]
         [HttpPost("SentCreateMenu")]
-        public async Task<IActionResult> SentCreateMenu(QueryModel<AddNewMenu> data)
+        public async Task<IActionResult> SentCreateMenu([FromHeader(Name = "Authorization")] string token, QueryModel<AddNewMenu> data)
         {
             var res = new ResultModel<ReturnMessage>();
             var dataResult = new ReturnMessage();
@@ -334,9 +354,9 @@ namespace FoodOrderAPI.Controllers
         }
 
 
-
+        [Authorize]
         [HttpPost("SentOrderNew")]
-        public async Task<IActionResult> SentOrderNew(QueryModel<SentOrder> data)
+        public async Task<IActionResult> SentOrderNew([FromHeader(Name = "Authorization")] string token, QueryModel<SentOrder> data)
         {
             var res = new ResultModel<ReturnMessage>();
             var dataResult = new ReturnMessage();
@@ -382,8 +402,12 @@ namespace FoodOrderAPI.Controllers
             return actionResult;
         }
 
-        [HttpPost("GetHeaderOrder")]
-        public async Task<IActionResult> GetHeaderOrder(QueryModel<AGetOrderModel> data)
+
+
+
+        [Authorize]
+        [HttpGet("GetHeaderOrder/{Username}/{Role}/{PageNumber}/{filter}")]
+        public async Task<IActionResult> GetHeaderOrder([FromHeader(Name = "Authorization")] string token, string Username, string Role, int PageNumber, string filter)
         {
             ResultModel<List<GetOrderData>> res = new ResultModel<List<GetOrderData>>();
             DataTable HeaderData = new DataTable();
@@ -392,7 +416,7 @@ namespace FoodOrderAPI.Controllers
 
             try
             {
-                HeaderData = _restService.GetHeaderOrder(_conString, data.Data, Convert.ToInt32(_RowsOfPage));
+                HeaderData = _restService.GetHeaderOrder(_conString, Username,Role,PageNumber,filter, Convert.ToInt32(_RowsOfPage));
                 if (HeaderData.Rows.Count > 0)
                 {
                     foreach (DataRow dt in HeaderData.Rows)
@@ -405,16 +429,18 @@ namespace FoodOrderAPI.Controllers
                         tmp.CreateBy = dt["CreateBy"].ToString();
                         tmp.IdStatus = dt["IdStatus"].ToString();
                         tmp.CreateDate = dt["Tanggal"].ToString();
-
                         Data.Add(tmp);
 
                     }
 
                     res.Data = Data;
+
+                    // Iterasi file hanya jika Data terisi
+                    
+
                     res.isSuccess = true;
                     res.ErrorCode = "00";
                     res.ErrorMessage = "";
-
                     actionResult = Ok(res);
                 }
                 else
@@ -439,8 +465,12 @@ namespace FoodOrderAPI.Controllers
             return actionResult;
         }
 
-        [HttpPost("GetDataOrderTotalRow")]
-        public async Task<IActionResult> GetDataOrderTotalRow(QueryModel<AGetOrderModel> data)
+
+
+
+        [Authorize]
+        [HttpGet("GetDataOrderTotalRow/{Username}/{Role}/{filter}")]
+        public async Task<IActionResult> GetHeaderOrder([FromHeader(Name = "Authorization")] string token, string Username, string Role, string filter)
         {
             ResultModel<int?> res = new ResultModel<int?>();
             int ListData = 0;
@@ -449,14 +479,14 @@ namespace FoodOrderAPI.Controllers
 
             try
             {
-                HeaderData = _restService.GetDataOrderTotalRow(_conString, data.Data, Convert.ToInt32(_RowsOfPage));
+                HeaderData = _restService.GetDataOrderTotalRow(_conString, Username, Role, filter, Convert.ToInt32(_RowsOfPage));
                 if (HeaderData.Rows.Count > 0)
                 {
                     foreach (DataRow dt in HeaderData.Rows)
                     {
                         ListData = Convert.ToInt32(dt["NumberRows"]);
-                    }
 
+                    }
                     res.Data = ListData;
                     res.isSuccess = true;
                     res.ErrorCode = "00";
@@ -485,6 +515,7 @@ namespace FoodOrderAPI.Controllers
             }
             return actionResult;
         }
+
 
         [HttpPost("GetDetailOrder")]
         public async Task<IActionResult> GetDetailOrder(QueryModel<GetDetailOrder> data)
@@ -546,8 +577,10 @@ namespace FoodOrderAPI.Controllers
             }
             return actionResult;
         }
+
+        [Authorize]
         [HttpPost("SentAddOrderNew")]
-        public async Task<IActionResult> SentAddOrderNew(QueryModel<SentOrder> data)
+        public async Task<IActionResult> SentAddOrderNew([FromHeader(Name = "Authorization")] string token, QueryModel<SentOrder> data)
         {
             var res = new ResultModel<ReturnMessage>();
             var dataResult = new ReturnMessage();
@@ -593,8 +626,9 @@ namespace FoodOrderAPI.Controllers
             return actionResult;
         }
 
+        [Authorize]
         [HttpPost("UpdateOrder")]
-        public async Task<IActionResult> UpdateOrder(QueryModel<updateOrderDetail> data)
+        public async Task<IActionResult> UpdateOrder([FromHeader(Name = "Authorization")] string token, QueryModel<updateOrderDetail> data)
         {
             DataTable dataTable = new DataTable();
             ResultModel<ReturnMessage> res = new ResultModel<ReturnMessage>();
@@ -635,9 +669,9 @@ namespace FoodOrderAPI.Controllers
         }
 
 
-
+        [Authorize]
         [HttpPost("UpdatePembayaran")]
-        public async Task<IActionResult> UpdatePembayaran(QueryModel<updatePembayaran> data)
+        public async Task<IActionResult> UpdatePembayaran([FromHeader(Name = "Authorization")] string token, QueryModel<updatePembayaran> data)
         {
             DataTable dataTable = new DataTable();
             ResultModel<ReturnMessage> res = new ResultModel<ReturnMessage>();
@@ -677,9 +711,9 @@ namespace FoodOrderAPI.Controllers
             return actionResult;
         }
 
-
+        [Authorize]
         [HttpPost("DeleteItem")]
-        public async Task<IActionResult> DeleteItem(QueryModel<DeleteItem> data)
+        public async Task<IActionResult> DeleteItem([FromHeader(Name = "Authorization")] string token, QueryModel<DeleteItem> data)
         {
             DataTable dataTable = new DataTable();
             ResultModel<ReturnMessage> res = new ResultModel<ReturnMessage>();
@@ -719,10 +753,13 @@ namespace FoodOrderAPI.Controllers
             return actionResult;
         }
 
+            [Authorize]
+            [HttpPost("UpdateItem")]
+        
 
-        [HttpPost("UpdateItem")]
-        public async Task<IActionResult> UpdateItem(QueryModel<SentUpdateItemModel> data)
-        {
+            public async Task<IActionResult> UpdateItem([FromHeader(Name = "Authorization")] string token, QueryModel<SentUpdateItemModel> data)
+            {
+            
             DataTable dataTable = new DataTable();
             ResultModel<ReturnMessage> res = new ResultModel<ReturnMessage>();
             ReturnMessage dataResult = new ReturnMessage();
@@ -762,24 +799,36 @@ namespace FoodOrderAPI.Controllers
         }
 
 
-        [HttpPost("DeleteItemMaster")]
-        public async Task<IActionResult> DeleteItemMaster(QueryModel<SentDeleteItemModel> data)
+
+
+
+
+
+
+        [Authorize]
+        [HttpDelete("DeleteItemMaster/{id}")]
+        public async Task<IActionResult> DeleteItem([FromHeader(Name = "Authorization")] string token, string id)
         {
+            IActionResult actionResult = null;
+
             DataTable dataTable = new DataTable();
+
             ResultModel<ReturnMessage> res = new ResultModel<ReturnMessage>();
             ReturnMessage dataResult = new ReturnMessage();
-            IActionResult actionResult = null;
 
             try
             {
-                dataTable = _restService.DeleteItemMaster(_conString, data.Data.IdItem);
+                // Tambahkan token ke header sebelum melakukan operasi
+                _http.DefaultRequestHeaders.Clear();
+                _http.DefaultRequestHeaders.Add("Authorization", $"{token}");
 
+                // Validasi id
+                dataTable = _restService.DeleteItemMaster(_conString, id);
                 if (dataTable.Rows.Count > 0)
                 {
                     foreach (DataRow detailRow in dataTable.Rows)
                     {
                         dataResult.message = detailRow["MESSAGE"].ToString();
-
                     }
 
                     res.Data = dataResult;
@@ -790,7 +839,6 @@ namespace FoodOrderAPI.Controllers
                     actionResult = Ok(res);
                 }
             }
-
             catch (Exception ex)
             {
                 res.Data = null;
@@ -803,8 +851,12 @@ namespace FoodOrderAPI.Controllers
             return actionResult;
         }
 
-        [HttpPost("GetReportStok")]
-        public async Task<IActionResult> GetReportStok(QueryModel<AGetReportStockDataModel> data)
+
+
+
+        [Authorize]
+        [HttpGet("GetReportStok/{PageNumber}/{filter}")]
+        public async Task<IActionResult> GetReportStok([FromHeader(Name = "Authorization")] string token, int PageNumber, string filter)
         {
             ResultModel<List<GetReportStockData>> res = new ResultModel<List<GetReportStockData>>();
             DataTable HeaderData = new DataTable();
@@ -813,7 +865,7 @@ namespace FoodOrderAPI.Controllers
 
             try
             {
-                HeaderData = _restService.GetReportStok(_conString, data.Data, Convert.ToInt32(_RowsOfPage));
+                HeaderData = _restService.GetReportStok(_conString, PageNumber, filter, Convert.ToInt32(_RowsOfPage));
                 if (HeaderData.Rows.Count > 0)
                 {
                     foreach (DataRow dt in HeaderData.Rows)
@@ -824,16 +876,19 @@ namespace FoodOrderAPI.Controllers
                         tmp.harga = dt["harga"].ToString();
                         tmp.qtyavailable = dt["qtyavailable"].ToString();
                         tmp.NamaJenis = dt["NamaJenis"].ToString();
-                      
+
                         Data.Add(tmp);
 
                     }
 
                     res.Data = Data;
+
+                    // Iterasi file hanya jika Data terisi
+
+
                     res.isSuccess = true;
                     res.ErrorCode = "00";
                     res.ErrorMessage = "";
-
                     actionResult = Ok(res);
                 }
                 else
@@ -858,8 +913,13 @@ namespace FoodOrderAPI.Controllers
             return actionResult;
         }
 
-        [HttpPost("GetReportStokTotalRow")]
-        public async Task<IActionResult> GetReportStokTotalRow(QueryModel<AGetReportStockDataModel> data)
+
+
+
+
+        [Authorize]
+        [HttpGet("GetReportStokTotalRow/{filter}")]
+        public async Task<IActionResult> GetReportStokTotalRow([FromHeader(Name = "Authorization")] string token, string filter)
         {
             ResultModel<int?> res = new ResultModel<int?>();
             int ListData = 0;
@@ -868,14 +928,14 @@ namespace FoodOrderAPI.Controllers
 
             try
             {
-                HeaderData = _restService.GetReportStokTotalRow(_conString, data.Data, Convert.ToInt32(_RowsOfPage));
+                HeaderData = _restService.GetReportStokTotalRow(_conString, filter, Convert.ToInt32(_RowsOfPage));
                 if (HeaderData.Rows.Count > 0)
                 {
                     foreach (DataRow dt in HeaderData.Rows)
                     {
                         ListData = Convert.ToInt32(dt["NumberRows"]);
-                    }
 
+                    }
                     res.Data = ListData;
                     res.isSuccess = true;
                     res.ErrorCode = "00";
@@ -906,8 +966,9 @@ namespace FoodOrderAPI.Controllers
         }
 
 
-        [HttpPost("GetReporOrderData")]
-        public async Task<IActionResult> GetReporOrderData(QueryModel<AGetReportOrderDataModel> data)
+        [Authorize]
+        [HttpGet("GetReporOrderData/{PageNumber}/{filter}")]
+        public async Task<IActionResult> GetReporOrderData([FromHeader(Name = "Authorization")] string token, int PageNumber, string filter)
         {
             ResultModel<List<GetReportOrderData>> res = new ResultModel<List<GetReportOrderData>>();
             DataTable HeaderData = new DataTable();
@@ -916,7 +977,7 @@ namespace FoodOrderAPI.Controllers
 
             try
             {
-                HeaderData = _restService.GetReporOrderData(_conString, data.Data, Convert.ToInt32(_RowsOfPage));
+                HeaderData = _restService.GetReporOrderData(_conString, PageNumber, filter, Convert.ToInt32(_RowsOfPage));
                 if (HeaderData.Rows.Count > 0)
                 {
                     foreach (DataRow dt in HeaderData.Rows)
@@ -931,13 +992,17 @@ namespace FoodOrderAPI.Controllers
 
                         Data.Add(tmp);
 
+
                     }
 
                     res.Data = Data;
+
+                    // Iterasi file hanya jika Data terisi
+
+
                     res.isSuccess = true;
                     res.ErrorCode = "00";
                     res.ErrorMessage = "";
-
                     actionResult = Ok(res);
                 }
                 else
@@ -961,8 +1026,14 @@ namespace FoodOrderAPI.Controllers
             }
             return actionResult;
         }
-        [HttpPost("GetReportOrderDataTotalRow")]
-        public async Task<IActionResult> GetReportOrderDataTotalRow(QueryModel<AGetReportOrderDataModel> data)
+
+
+
+
+
+        [Authorize]
+        [HttpGet("GetReportOrderDataTotalRow/{filter}")]
+        public async Task<IActionResult> GetReportOrderDataTotalRow([FromHeader(Name = "Authorization")] string token, string filter)
         {
             ResultModel<int?> res = new ResultModel<int?>();
             int ListData = 0;
@@ -971,14 +1042,14 @@ namespace FoodOrderAPI.Controllers
 
             try
             {
-                HeaderData = _restService.GetReportOrderDataTotalRow(_conString, data.Data, Convert.ToInt32(_RowsOfPage));
+                HeaderData = _restService.GetReportOrderDataTotalRow(_conString, filter, Convert.ToInt32(_RowsOfPage));
                 if (HeaderData.Rows.Count > 0)
                 {
                     foreach (DataRow dt in HeaderData.Rows)
                     {
                         ListData = Convert.ToInt32(dt["NumberRows"]);
-                    }
 
+                    }
                     res.Data = ListData;
                     res.isSuccess = true;
                     res.ErrorCode = "00";
@@ -1007,5 +1078,9 @@ namespace FoodOrderAPI.Controllers
             }
             return actionResult;
         }
+
+
+
+        
     }
 }

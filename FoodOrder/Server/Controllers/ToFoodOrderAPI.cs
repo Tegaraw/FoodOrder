@@ -1,6 +1,7 @@
 ﻿using FoodOrder.Shared.FoodOrderModel;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Net.Http.Json;
 
 namespace FoodOrder.Server.Controllers
@@ -60,99 +61,97 @@ namespace FoodOrder.Server.Controllers
             return actionResult;
         }
 
-        [HttpPost("GetMasterItem")]
-        public async Task<IActionResult> GetMasterItem([FromHeader(Name = "Authorization")] string token, QueryModel<GetMenu> data)
+
+
+        [HttpGet("GetMasterItem/{idjenis}")]
+        public async Task<IActionResult> GetItem([FromHeader(Name = "Authorization")] string token, string idjenis)
         {
+            IActionResult actionResult = null;
             ResultModel<List<MasterItem>> res = new ResultModel<List<MasterItem>>();
-            IActionResult actionResult = null;
-
             try
             {
                 _http.DefaultRequestHeaders.Clear();
                 _http.DefaultRequestHeaders.Add("Authorization", $"{token}");
-                var result = await _http.PostAsJsonAsync<QueryModel<GetMenu>>($"api/RestAPI/GetMasterItem", data);
-                var respBody = await result.Content.ReadFromJsonAsync<ResultModel<List<MasterItem>>>();
+                var result = await _http.GetFromJsonAsync<ResultModel<List<MasterItem>>>($"api/RestAPI/GetMasterItem/{idjenis}");
 
-                if (respBody.isSuccess)
+                if (result.isSuccess)
                 {
-                    res.Data = respBody.Data;
-
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
+                    res.Data = result.Data;
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                     actionResult = Ok(res);
                 }
                 else
                 {
                     res.Data = null;
-
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                     actionResult = Ok(res);
                 }
-
             }
             catch (Exception ex)
             {
                 res.Data = null;
                 res.isSuccess = false;
                 res.ErrorCode = "99";
-                res.ErrorMessage = ex.Message;
-
+                res.ErrorMessage = "Bad request ToPOSapi" + ex.Message.ToString();
                 actionResult = BadRequest(res);
             }
             return actionResult;
         }
 
-        [HttpPost("GetCategory")]
-        public async Task<IActionResult> GetCategory([FromHeader(Name = "Authorization")] string token, QueryModel<GetMenu> data)
+
+
+
+
+
+
+
+
+        [HttpGet("GetCategory/{idjenis}")]
+        public async Task<IActionResult> GetCategory([FromHeader(Name = "Authorization")] string token, string idjenis)
         {
-            ResultModel<List<getCategory>> res = new ResultModel<List<getCategory>>();
             IActionResult actionResult = null;
-
+            ResultModel<List<getCategory>> res = new ResultModel<List<getCategory>>();
             try
             {
                 _http.DefaultRequestHeaders.Clear();
                 _http.DefaultRequestHeaders.Add("Authorization", $"{token}");
-                var result = await _http.PostAsJsonAsync<QueryModel<GetMenu>>($"api/RestAPI/GetCategory", data);
-                var respBody = await result.Content.ReadFromJsonAsync<ResultModel<List<getCategory>>>();
+                var result = await _http.GetFromJsonAsync<ResultModel<List<getCategory>>>($"api/RestAPI/GetCategory/{idjenis}");
 
-                if (respBody.isSuccess)
+                if (result.isSuccess)
                 {
-                    res.Data = respBody.Data;
-
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
+                    res.Data = result.Data;
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                     actionResult = Ok(res);
                 }
                 else
                 {
                     res.Data = null;
-
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                     actionResult = Ok(res);
                 }
-
             }
             catch (Exception ex)
             {
                 res.Data = null;
                 res.isSuccess = false;
                 res.ErrorCode = "99";
-                res.ErrorMessage = ex.Message;
-
+                res.ErrorMessage = "Bad request ToPOSapi" + ex.Message.ToString();
                 actionResult = BadRequest(res);
             }
             return actionResult;
         }
+
+
+
+       
         [HttpPost("UpdateTersedia")]
         public async Task<IActionResult> UpdateTersedia([FromHeader(Name = "Authorization")] string token, QueryModel<GetMenu> File)
         {
@@ -294,99 +293,96 @@ namespace FoodOrder.Server.Controllers
             return actionResult;
         }
 
-        [HttpPost("GetHeaderOrder")]
-        public async Task<IActionResult> GetHeaderOrder([FromHeader(Name = "Authorization")] string token, QueryModel<AGetOrderModel> data)
+
+
+
+        [HttpGet("GetHeaderOrder/{Username}/{Role}/{PageNumber}/{filter}")]
+        public async Task<IActionResult> GetHeaderOrder([FromHeader(Name = "Authorization")] string token, string Username, string Role, int PageNumber, string filter)
         {
+            IActionResult actionResult = null;
             ResultModel<List<GetOrderData>> res = new ResultModel<List<GetOrderData>>();
-            IActionResult actionResult = null;
-
             try
             {
                 _http.DefaultRequestHeaders.Clear();
                 _http.DefaultRequestHeaders.Add("Authorization", $"{token}");
-                var result = await _http.PostAsJsonAsync<QueryModel<AGetOrderModel>>($"api/RestAPI/GetHeaderOrder", data);
-                var respBody = await result.Content.ReadFromJsonAsync<ResultModel<List<GetOrderData>>>();
+                var result = await _http.GetFromJsonAsync<ResultModel<List<GetOrderData>>>($"api/RestAPI/GetHeaderOrder/{Username}/{Role}/{PageNumber}/{filter}");
 
-                if (respBody.isSuccess)
+                if (result.isSuccess)
                 {
-                    res.Data = respBody.Data;
-
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
+                    res.Data = result.Data;
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                     actionResult = Ok(res);
                 }
                 else
                 {
                     res.Data = null;
-
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                     actionResult = Ok(res);
                 }
-
             }
             catch (Exception ex)
             {
                 res.Data = null;
                 res.isSuccess = false;
                 res.ErrorCode = "99";
-                res.ErrorMessage = ex.Message;
-
+                res.ErrorMessage = "Bad request ToPOSapi" + ex.Message.ToString();
                 actionResult = BadRequest(res);
             }
             return actionResult;
         }
-        [HttpPost("GetDataOrderTotalRow")]
-        public async Task<IActionResult> GetSummarySupplierTotalRow([FromHeader(Name = "Authorization")] string token, QueryModel<AGetOrderModel> data)
+
+
+
+
+
+        [HttpGet("GetDataOrderTotalRow/{Username}/{Role}/{filter}")]
+        public async Task<IActionResult> GetDataOrderTotalRow([FromHeader(Name = "Authorization")] string token, string Username, string Role, string filter)
         {
-            ResultModel<int?> res = new ResultModel<int?>();
             IActionResult actionResult = null;
-
+            ResultModel<int?> res = new ResultModel<int?>();
             try
             {
                 _http.DefaultRequestHeaders.Clear();
                 _http.DefaultRequestHeaders.Add("Authorization", $"{token}");
-                var result = await _http.PostAsJsonAsync<QueryModel<AGetOrderModel>>($"api/RestAPI/GetDataOrder", data);
-                var respBody = await result.Content.ReadFromJsonAsync<ResultModel<int?>>();
+                var result = await _http.GetFromJsonAsync<ResultModel<int?>>($"api/RestAPI/GetDataOrderTotalRow/{Username}/{Role}/{filter}");
 
-                if (respBody.isSuccess)
+                if (result.isSuccess)
                 {
-                    res.Data = respBody.Data;
-
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
+                    res.Data = result.Data;
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                     actionResult = Ok(res);
                 }
                 else
                 {
                     res.Data = null;
-
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                     actionResult = Ok(res);
                 }
-
             }
             catch (Exception ex)
             {
                 res.Data = null;
                 res.isSuccess = false;
                 res.ErrorCode = "99";
-                res.ErrorMessage = ex.Message;
-
+                res.ErrorMessage = "Bad request ToPOSapi" + ex.Message.ToString();
                 actionResult = BadRequest(res);
             }
             return actionResult;
         }
 
+
+
+
+
+        
         [HttpPost("GetDetailOrder")]
         public async Task<IActionResult> GetDetailOrder([FromHeader(Name = "Authorization")] string token, QueryModel<GetDetailOrder> data)
         {
@@ -670,25 +666,61 @@ namespace FoodOrder.Server.Controllers
             return actionResult;
         }
 
-
-        [HttpPost("DeleteItemMaster")]
-        public async Task<IActionResult> DeleteItemMaster([FromHeader(Name = "Authorization")] string token, QueryModel<SentDeleteItemModel> File)
+        [HttpDelete("DeleteItemMaster/{id}")]
+        public async Task<IActionResult> DeleteItem([FromHeader(Name = "Authorization")] string token, string id)
         {
-            ResultModel<ReturnMessage> res = new ResultModel<ReturnMessage>();
-
             IActionResult actionResult = null;
-            bool dataError = false;
-            object lockObject = new object();
-            ReturnMessage dataresult = new ReturnMessage();
-
+            ResultModel<ReturnMessage> res = new ResultModel<ReturnMessage>();
             try
             {
                 _http.DefaultRequestHeaders.Clear();
                 _http.DefaultRequestHeaders.Add("Authorization", $"{token}");
 
-                var resault = await _http.PostAsJsonAsync<QueryModel<SentDeleteItemModel>>($"api/RestAPI/DeleteItemMaster", File);
+                var request = new HttpRequestMessage(HttpMethod.Delete, $"api/RestAPI/DeleteItemMaster/{id}");
+                var response = await _http.SendAsync(request);
 
-                var result = await resault.Content.ReadFromJsonAsync<ResultModel<ReturnMessage>>();
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<ResultModel<ReturnMessage>>();
+
+                    res.Data = result.Data;
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
+                    actionResult = Ok(res);
+                }
+                else
+                {
+                    res.Data = null;
+                    res.isSuccess = true;
+                    res.ErrorCode = response.StatusCode.ToString();
+                    res.ErrorMessage = response.RequestMessage.ToString();
+                    actionResult = Ok(res);
+                }
+            }
+            catch (Exception ex)
+            {
+                res.Data = null;
+                res.isSuccess = false;
+                res.ErrorCode = "99";
+                res.ErrorMessage = "Bad request ToPOSapi" + ex.Message.ToString();
+                actionResult = BadRequest(res);
+            }
+            return actionResult;
+        }
+
+
+        [HttpGet("GetReportStok/{PageNumber}/{filter}")]
+        public async Task<IActionResult> GetReportStok([FromHeader(Name = "Authorization")] string token, int PageNumber, string filter)
+        {
+            IActionResult actionResult = null;
+            ResultModel<List<GetReportStockData>> res = new ResultModel<List<GetReportStockData>>();
+            try
+            {
+                _http.DefaultRequestHeaders.Clear();
+                _http.DefaultRequestHeaders.Add("Authorization", $"{token}");
+                var result = await _http.GetFromJsonAsync<ResultModel<List<GetReportStockData>>>($"api/RestAPI/GetReportStok/{PageNumber}/{filter}");
+
                 if (result.isSuccess)
                 {
                     res.Data = result.Data;
@@ -711,7 +743,7 @@ namespace FoodOrder.Server.Controllers
                 res.Data = null;
                 res.isSuccess = false;
                 res.ErrorCode = "99";
-                res.ErrorMessage = "Bad request ToFacade Controller";
+                res.ErrorMessage = "Bad request ToPOSapi" + ex.Message.ToString();
                 actionResult = BadRequest(res);
             }
             return actionResult;
@@ -719,192 +751,129 @@ namespace FoodOrder.Server.Controllers
 
 
 
-        [HttpPost("GetReportStok")]
-        public async Task<IActionResult> GetReportStok([FromHeader(Name = "Authorization")] string token, QueryModel<AGetReportStockDataModel> data)
+
+        [HttpGet("GetReportStokTotalRow/{filter}")]
+        public async Task<IActionResult> GetReportStokTotalRow([FromHeader(Name = "Authorization")] string token, string filter)
         {
-            ResultModel<List<GetReportStockData>> res = new ResultModel<List<GetReportStockData>>();
             IActionResult actionResult = null;
-
-            try
-            {
-                _http.DefaultRequestHeaders.Clear();
-                _http.DefaultRequestHeaders.Add("Authorization", $"{token}");
-                var result = await _http.PostAsJsonAsync<QueryModel<AGetReportStockDataModel>>($"api/RestAPI/GetReportStok", data);
-                var respBody = await result.Content.ReadFromJsonAsync<ResultModel<List<GetReportStockData>>>();
-
-                if (respBody.isSuccess)
-                {
-                    res.Data = respBody.Data;
-
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
-                    actionResult = Ok(res);
-                }
-                else
-                {
-                    res.Data = null;
-
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
-                    actionResult = Ok(res);
-                }
-
-            }
-            catch (Exception ex)
-            {
-                res.Data = null;
-                res.isSuccess = false;
-                res.ErrorCode = "99";
-                res.ErrorMessage = ex.Message;
-
-                actionResult = BadRequest(res);
-            }
-            return actionResult;
-        }
-
-        [HttpPost("GetReportStokTotalRow")]
-        public async Task<IActionResult> GetReportStokTotalRow([FromHeader(Name = "Authorization")] string token, QueryModel<AGetReportStockDataModel> data)
-        {
             ResultModel<int?> res = new ResultModel<int?>();
-            IActionResult actionResult = null;
-
             try
             {
                 _http.DefaultRequestHeaders.Clear();
                 _http.DefaultRequestHeaders.Add("Authorization", $"{token}");
-                var result = await _http.PostAsJsonAsync<QueryModel<AGetReportStockDataModel>>($"api/RestAPI/GetReportStokTotalRow", data);
-                var respBody = await result.Content.ReadFromJsonAsync<ResultModel<int?>>();
+                var result = await _http.GetFromJsonAsync<ResultModel<int?>>($"api/RestAPI/GetReportStokTotalRow/{filter}");
 
-                if (respBody.isSuccess)
+                if (result.isSuccess)
                 {
-                    res.Data = respBody.Data;
-
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
+                    res.Data = result.Data;
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                     actionResult = Ok(res);
                 }
                 else
                 {
                     res.Data = null;
-
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                     actionResult = Ok(res);
                 }
-
             }
             catch (Exception ex)
             {
                 res.Data = null;
                 res.isSuccess = false;
                 res.ErrorCode = "99";
-                res.ErrorMessage = ex.Message;
-
+                res.ErrorMessage = "Bad request ToPOSapi" + ex.Message.ToString();
                 actionResult = BadRequest(res);
             }
             return actionResult;
         }
-        [HttpPost("GetReporOrderData")]
-        public async Task<IActionResult> GetReporOrderData([FromHeader(Name = "Authorization")] string token, QueryModel<AGetReportOrderDataModel> data)
+
+
+        [HttpGet("GetReporOrderData/{PageNumber}/{filter}")]
+        public async Task<IActionResult> GetReporOrderData([FromHeader(Name = "Authorization")] string token, int PageNumber, string filter)
         {
+            IActionResult actionResult = null;
             ResultModel<List<GetReportOrderData>> res = new ResultModel<List<GetReportOrderData>>();
-            IActionResult actionResult = null;
-
             try
             {
                 _http.DefaultRequestHeaders.Clear();
                 _http.DefaultRequestHeaders.Add("Authorization", $"{token}");
-                var result = await _http.PostAsJsonAsync<QueryModel<AGetReportOrderDataModel>>($"api/RestAPI/GetReporOrderData", data);
-                var respBody = await result.Content.ReadFromJsonAsync<ResultModel<List<GetReportOrderData>>>();
+                var result = await _http.GetFromJsonAsync<ResultModel<List<GetReportOrderData>>>($"api/RestAPI/GetReporOrderData/{PageNumber}/{filter}");
 
-                if (respBody.isSuccess)
+                if (result.isSuccess)
                 {
-                    res.Data = respBody.Data;
-
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
+                    res.Data = result.Data;
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                     actionResult = Ok(res);
                 }
                 else
                 {
                     res.Data = null;
-
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                     actionResult = Ok(res);
                 }
-
             }
             catch (Exception ex)
             {
                 res.Data = null;
                 res.isSuccess = false;
                 res.ErrorCode = "99";
-                res.ErrorMessage = ex.Message;
-
+                res.ErrorMessage = "Bad request ToPOSapi" + ex.Message.ToString();
                 actionResult = BadRequest(res);
             }
             return actionResult;
         }
 
 
-        [HttpPost("GetReportOrderDataTotalRow")]
-        public async Task<IActionResult> GetReportOrderDataTotalRow([FromHeader(Name = "Authorization")] string token, QueryModel<AGetReportOrderDataModel> data)
+        [HttpGet("GetReportOrderDataTotalRow/{filter}")]
+        public async Task<IActionResult> GetReportOrderDataTotalRow([FromHeader(Name = "Authorization")] string token, string filter)
         {
-            ResultModel<int?> res = new ResultModel<int?>();
             IActionResult actionResult = null;
-
+            ResultModel<int?> res = new ResultModel<int?>();
             try
             {
                 _http.DefaultRequestHeaders.Clear();
                 _http.DefaultRequestHeaders.Add("Authorization", $"{token}");
-                var result = await _http.PostAsJsonAsync<QueryModel<AGetReportOrderDataModel>>($"api/RestAPI/GetReportOrderDataTotalRow", data);
-                var respBody = await result.Content.ReadFromJsonAsync<ResultModel<int?>>();
+                var result = await _http.GetFromJsonAsync<ResultModel<int?>>($"api/RestAPI/GetReportOrderDataTotalRow/{filter}");
 
-                if (respBody.isSuccess)
+                if (result.isSuccess)
                 {
-                    res.Data = respBody.Data;
-
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
+                    res.Data = result.Data;
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                     actionResult = Ok(res);
                 }
                 else
                 {
                     res.Data = null;
-
-                    res.isSuccess = respBody.isSuccess;
-                    res.ErrorCode = respBody.ErrorCode;
-                    res.ErrorMessage = respBody.ErrorMessage;
-
+                    res.isSuccess = result.isSuccess;
+                    res.ErrorCode = result.ErrorCode;
+                    res.ErrorMessage = result.ErrorMessage;
                     actionResult = Ok(res);
                 }
-
             }
             catch (Exception ex)
             {
                 res.Data = null;
                 res.isSuccess = false;
                 res.ErrorCode = "99";
-                res.ErrorMessage = ex.Message;
-
+                res.ErrorMessage = "Bad request ToPOSapi" + ex.Message.ToString();
                 actionResult = BadRequest(res);
             }
             return actionResult;
         }
+
+
+
+
+        
     }
 }

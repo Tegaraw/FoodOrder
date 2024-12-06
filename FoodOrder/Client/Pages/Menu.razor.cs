@@ -67,6 +67,7 @@ namespace FoodOrder.Client.Pages
 
         private string QTYReady;
         private bool isLoading = false;
+        
         protected override async Task OnInitializedAsync()
         {
             isLoading = true; 
@@ -133,19 +134,12 @@ namespace FoodOrder.Client.Pages
         {
             try
             {
-                var CekNopol = new GetMenu
-                {
-                    IdJenis = "",
-                    Tersedia = ""
-                };
+               
 
-                QueryModel<GetMenu> acongceknopol = new QueryModel<GetMenu>
-                {
-                    Data = CekNopol,
-                    username = irestService.activeUsers.Username.ToString()
-                };
+                var resultceknopol = await FoodOrderService.GetMasterItem("0", token);
 
-                var resultceknopol = await FoodOrderService.GetMasterItem(acongceknopol, token);
+
+
 
                 if (resultceknopol.isSuccess && resultceknopol.Data != null)
                 {
@@ -195,19 +189,8 @@ namespace FoodOrder.Client.Pages
         {
             try
             {
-                var CekNopol = new GetMenu
-                {
-                    IdJenis = "",
-                    Tersedia = ""
-                };
-
-                QueryModel<GetMenu> acongceknopol = new QueryModel<GetMenu>
-                {
-                    Data = CekNopol,
-                    username = irestService.activeUsers.Username.ToString()
-                };
-
-                var resultceknopol = await FoodOrderService.GetCategory(acongceknopol, token);
+               
+                var resultceknopol = await FoodOrderService.GetCategory("0", token);
 
                 if (resultceknopol.isSuccess && resultceknopol.Data != null)
                 {
@@ -666,19 +649,9 @@ namespace FoodOrder.Client.Pages
 
             try
             {
-                var sentcreatemenu = new SentDeleteItemModel
-                {
-                    IdItem = selectedIdItem
-                  
-                };
+               
 
-                QueryModel<SentDeleteItemModel> acongceknopol = new QueryModel<SentDeleteItemModel>
-                {
-                    Data = sentcreatemenu,
-                    username = irestService.activeUsers.Username.ToString()
-                };
-
-                var resultceknopol = await FoodOrderService.DeleteItemMaster(token, acongceknopol);
+                var resultceknopol = await FoodOrderService.DeleteItemMaster(token, selectedIdItem);
                 msg = resultceknopol.Data.message.ToString();
 
 

@@ -4,6 +4,7 @@ using FoodOrder.Shared.FoodOrderModel;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System.ComponentModel;
+using System.Data;
 
 namespace FoodOrder.Client.Pages
 {
@@ -58,15 +59,14 @@ namespace FoodOrder.Client.Pages
         {
             FileResult.Clear();
 
-            QueryModel<AGetOrderModel> updateModel = new QueryModel<AGetOrderModel>();
-            updateModel.Data = new AGetOrderModel();
-            updateModel.Data.GetHead.UserName = irestService.activeUsers.Username;
-            updateModel.Data.GetHead.Role = irestService.activeUsers.Role;
+           
+            if(filter == string.Empty)
+            {
+                filter = "0";
+            }
+           
 
-            updateModel.Data.PageNumber = PageNumber;
-            updateModel.Data.Condition = filter;
-
-            var data = await FoodOrderService.GetHeaderOrder(token, updateModel);
+            var data = await FoodOrderService.GetHeaderOrder(token, irestService.activeUsers.Username, irestService.activeUsers.Role, PageNumber, filter);
 
             if (data.Data != null)
             {
@@ -88,13 +88,12 @@ namespace FoodOrder.Client.Pages
             try
             {
                 QueryModel<AGetOrderModel> updateModel = new QueryModel<AGetOrderModel>();
-                updateModel.Data = new AGetOrderModel();
-                updateModel.Data.GetHead.UserName = irestService.activeUsers.Username;
-                updateModel.Data.GetHead.Role = irestService.activeUsers.Role;
+                if (filter == string.Empty)
+                {
+                    filter = "0";
+                }
 
-                updateModel.Data.Condition = filter;
-
-                var restRow = await FoodOrderService.GetDataOrderTotalRow(token, updateModel);
+                var restRow = await FoodOrderService.GetDataOrderTotalRow(token, irestService.activeUsers.Username, irestService.activeUsers.Role,  filter);
                 fuelStockNumberofPages = restRow.Data;
             }
             catch (Exception ex)
@@ -123,7 +122,7 @@ namespace FoodOrder.Client.Pages
                 QueryModel<string> param = new();
 
                 await GetCrossDockHeaderTotalRow("");
-                await LoadData(1, "");
+                await LoadData(1, "0");
 
 
                 advanceFilter.Clear();
